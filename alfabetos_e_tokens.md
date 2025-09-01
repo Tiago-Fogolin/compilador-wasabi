@@ -2,15 +2,17 @@
 
 O alfabeto **Σ** da linguagem será composto pelos seguintes grupos de símbolos:
 
-* **Letras**: `a–z`, `A–Z`  
-* **Dígitos:** `0–9`  
-* **Underscore:** `_`  
-* **Símbolos especiais**: `_` (underscore), `"` (aspas duplas), `'` (aspas simples), `.` (ponto), `,` (vírgula), `:` (dois pontos), `;` (ponto e vírgula)  
-* **Operadores aritméticos**: `+ - * /`  
-* **Operadores relacionais/lógicos**: `= < > ! & |`  
-* **Delimitadores**: `() [] {}`  
-* **Espaços em branco**: espaço (`␣`), tabulação (`\t`), quebra de linha (`\n`, `\r\n)`  
-* **Comentários:** `// ...` **(linha única) e** `/* ... */` **(bloco)**
+* **ΣLetrasMinúsculas**: `{a–z}`
+* **ΣLetrasMaiúsculas**: `{A–Z}`  
+* **ΣDígitos:** `{0–9}`  
+* **ΣUnderscore:** `_`  
+* **ΣSímbolos especiais**: `{_, ", ', ., \, , :, ;}`
+* **ΣOperadores aritméticos**: `{+, -, *, /, %}`  
+* **ΣOperadores relacionais/lógicos**: `{=, <, >, !, &, |}`  
+* **ΣDelimitadores**: `{(, ), [, ], {, }}`  
+* **ΣEspaços em branco**: `{␣, \t, \n, \r\n}`  
+* **ΣComentários:** `{// ∙ {new_line}`,   `/* ∙ */}`
+
 
 ## **2. Definição Formal dos Tokens**
 
@@ -22,26 +24,21 @@ O alfabeto **Σ** da linguagem será composto pelos seguintes grupos de símbolo
 
 * Case-sensitive.
 
-  ID = `( a−z ∪ A−Z ∪ _ )( a−z ∪ A−Z ∪ 0−9 ∪ _)∗`
+  ID = `( ΣLetrasMinúsculas ∪ ΣLetrasMaiúsculas)( ΣLetrasMinúsculas ∪ ΣLetrasMaiúsculas ∪ ΣDígitos ∪ ΣUnderscore)∗`
 
 ---
 
 ### **b) Números**
 
 * **Inteiros**:  
-  * NUM int  \=  (0−9)\+
+  * NUM int  =  ΣDígitos\+
 
 Ex: `42, 1000`
 
 * **Decimais**:  
-  * NUM dec  \= (0−9)\+  "."  (0−9)\+
+  * NUM dec  = Dígitos\+ ∙ {.} ∙ Dígitos\+
 
 Ex: `3.14`, `0.5`
-
-* **Notação científica**:  
-  * NUM sci \= (0−9)\+ ((˙0−9)\+) ? \[eE\] \[+−\] ? (0−9) \+
-
-  Ex: `1.2e10`, `5E-3`
 
 ---
 
@@ -49,7 +46,7 @@ Ex: `3.14`, `0.5`
 
 * Delimitadas por aspas duplas `"..."`.  
 * Podem conter qualquer caractere, exceto `"` não escapado.  
-  * STR= " ( Σ −{""})∗"
+  * STR= `{"} ∙ ( Σ − {""})∗ ∙ {"}`
 
 Ex: `"Olá, mundo"`, `"vendas_2025.csv"`
 
@@ -70,18 +67,7 @@ Reservadas da linguagem:
 * **Delimitadores**: `() [] {}`  
 * **Separadores**: `, ;`
 
-
-# 1. Alfabeto da linguagem:  
-* letras `(a-z, A-Z)`  
-* dígitos `(0-9)`  
-* Underscore `(\_)`  
-* operadores aritméticos `( \+ \- \*  /)`  
-* operadores relacionais `( \= \< \> \! & | )`  
-* delimitadores e agrupadores `( () \[\] {})`
-* pontuação `(: , .)`  
-* aspas `(“)` para string  
-* espaço em branco: `espaço ( ), tab (`\t`), quebra de linha (`\n`, `\r\n`)`   
-* comentários `(// /**/)`
+---
 
 # 2. Tipos de tokens 
 
