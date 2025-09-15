@@ -1,9 +1,33 @@
 #include <iostream>
 #include <TokensAutomatos.hpp>
 
+struct SequenceResult {
+    int first;
+    int last;
+};
+
+int addNode(std::vector<NodeAutomato>& nodes, const std::unordered_map<char,int>& mapa) {
+    nodes.push_back(NodeAutomato(mapa));
+    return nodes.size() - 1;
+}
+
+SequenceResult addSequence(std::vector<NodeAutomato>& nodes, const std::string& s) {
+	int first = nodes.size();
+    int current = first;
+    for (size_t i = 1; i < s.size(); ++i) {
+        std::unordered_map<char,int> mapa;
+        mapa[s[i]] = current + 1;
+        nodes.push_back(NodeAutomato(mapa));
+        current++;
+    }
+
+	addNode(nodes, {});
+
+    return {first, current};
+}
 
 Automato criarAutomatoInteiros() {
-    std::vector<NodeAutomato> nodes;
+	std::vector<NodeAutomato> nodes;
 
     // node 0
     // mapa node incial
@@ -15,21 +39,14 @@ Automato criarAutomatoInteiros() {
         mapaRoot[c] = 2; // 1-9 vai pro node 2
     }
 
-    NodeAutomato root = NodeAutomato(
-        mapaRoot
-    );
-
-    nodes.push_back(root);
+    addNode(nodes, mapaRoot);
 
     // Node 1
     std::unordered_map<char, int> mapaNode1;
     mapaNode1['0'] = 1; // se for zero continua no mesmo
     
-    NodeAutomato node1 = NodeAutomato(
-        mapaNode1
-    );
+    int idxNode1 = addNode(nodes, mapaNode1);
 
-    nodes.push_back(node1);
 
     // Node 2
     std::unordered_map<char, int> mapaNode2;
@@ -37,132 +54,27 @@ Automato criarAutomatoInteiros() {
         mapaNode2[c] = 2; // 0-9 vai pro node 2 (continua no mesmo)
     }
 
-    NodeAutomato node2 = NodeAutomato(
-        mapaNode2
-    );
+    int idxNode2 = addNode(nodes, mapaNode2);
 
-    nodes.push_back(node2);
 
     // tanto estado 1 quanto estado 2 são estados finais válidos
-    std::set<int> estadosFinais;
-    estadosFinais.insert(1); 
-    estadosFinais.insert(2);
+    std::set<int> estadosFinais = {idxNode1, idxNode2};
 
-
-    Automato automatoInteiros = Automato(
-        nodes,
-        estadosFinais
-    );
-
-    return automatoInteiros;
-
+    return Automato(nodes,estadosFinais);
 }
 
 Automato criarAutomatoBooleanos() {
     std::vector<NodeAutomato> nodes;
 
-    // node 0, ou pra f ou pra t
-    std::unordered_map<char, int> mapaNode0;
+	addNode(nodes, {}); // criei o root primeiro aqui, mas com mapa vazio
 
-    mapaNode0['f'] = 1; // node 1 -> começo do false
-    mapaNode0['t'] = 6; // node 6 -> começo do true
+	SequenceResult falseSeq = addSequence(nodes, "false");
+	SequenceResult trueSeq = addSequence(nodes, "true");
 
-    NodeAutomato root = NodeAutomato(
-        mapaNode0
-    );
+	nodes[0].mapaDestino['f'] = falseSeq.first; // mapeio o root pro começo de cada um
+    nodes[0].mapaDestino['t'] = trueSeq.first;
 
-    nodes.push_back(root);
+	std::set<int> finais = {falseSeq.last, trueSeq.last};
 
-    // Nodes para 'false'
-    std::unordered_map<char, int> mapaNode1;
-    mapaNode1['a'] = 2;
-
-    NodeAutomato node1 = NodeAutomato(
-      mapaNode1  
-    );
-
-    nodes.push_back(node1);
-
-    std::unordered_map<char, int> mapaNode2;
-    mapaNode2['l'] = 3;
-
-    NodeAutomato node2 = NodeAutomato(
-      mapaNode2
-    );
-
-    nodes.push_back(node2);
-
-    std::unordered_map<char, int> mapaNode3;
-    mapaNode3['s'] = 4;
-
-    NodeAutomato node3 = NodeAutomato(
-      mapaNode3  
-    );
-
-    nodes.push_back(node3);
-
-    std::unordered_map<char, int> mapaNode4;
-    mapaNode4['e'] = 5;
-
-    NodeAutomato node4 = NodeAutomato(
-      mapaNode4  
-    );
-
-    nodes.push_back(node4);
-
-    std::unordered_map<char, int> mapaNode5; // só pra marcar o ultimo estado, n tem transição
-
-    NodeAutomato node5 = NodeAutomato(
-      mapaNode5  
-    );
-
-    nodes.push_back(node5);
-
-    // Nodes para 'true'
-    std::unordered_map<char, int> mapaNode6;
-    mapaNode6['r'] = 7;
-
-    NodeAutomato node6 = NodeAutomato(
-      mapaNode6  
-    );
-
-    nodes.push_back(node6);
-
-    std::unordered_map<char, int> mapaNode7;
-    mapaNode7['u'] = 8;
-
-    NodeAutomato node7 = NodeAutomato(
-      mapaNode7  
-    );
-
-    nodes.push_back(node7);
-
-    std::unordered_map<char, int> mapaNode8;
-    mapaNode8['e'] = 9;
-
-    NodeAutomato node8 = NodeAutomato(
-      mapaNode8  
-    );
-
-    nodes.push_back(node8);
-
-    std::unordered_map<char, int> mapaNode9; // só pra marcar o ultimo estado, n tem transição
-
-    NodeAutomato node9 = NodeAutomato(
-      mapaNode9  
-    );
-
-    nodes.push_back(node9);
-
-    // Finais -> 5 e 9
-    std::set<int> estadosFinais;
-    estadosFinais.insert(5);
-    estadosFinais.insert(9);
-
-    Automato automatoBooleano = Automato(
-        nodes,
-        estadosFinais
-    );
-
-    return automatoBooleano;
+	return Automato(nodes, finais);
 }
