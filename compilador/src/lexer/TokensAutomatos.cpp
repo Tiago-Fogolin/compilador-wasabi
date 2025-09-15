@@ -78,3 +78,32 @@ Automato criarAutomatoBooleanos() {
 
 	return Automato(nodes, finais);
 }
+
+Automato criarAutomatoIdentificadores() {
+	std::vector<NodeAutomato> nodes;
+
+	std::unordered_map<char, int> mapaRoot;
+	for(char c = 'a'; c <= 'z'; c++) {
+		mapaRoot[c] = 1;
+	}
+
+	for(char c = 'A'; c <= 'Z'; c++) {
+		mapaRoot[c] = 1;
+	}
+
+	mapaRoot['_'] = 1;
+	
+	addNode(nodes, mapaRoot);
+
+	std::unordered_map<char, int> mapaNode1 = mapaRoot;
+
+	for(char c = '0'; c <= '9'; c++) {
+		mapaNode1[c] = 1;
+	}
+
+	addNode(nodes, mapaNode1);
+
+	std::set<int> estadosFinais = {1};
+
+	return Automato(nodes, estadosFinais);
+}
