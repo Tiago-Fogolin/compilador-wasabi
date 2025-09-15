@@ -5,4 +5,6 @@ Automato criarAutomatoInteiros();
 
 Automato criarAutomatoBooleanos();
 
+Automato criarAutomatoFlutuantes();
+
 Automato criarAutomatoIdentificadores();

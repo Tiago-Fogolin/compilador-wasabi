@@ -107,3 +107,52 @@ Automato criarAutomatoIdentificadores() {
 
 	return Automato(nodes, estadosFinais);
 }
+
+Automato criarAutomatoFlutuantes() {
+    // TODO: rejeitar 0 seguido de outros números
+	std::vector<NodeAutomato> nodes;
+
+    // node 0
+    // mapa node incial
+    std::unordered_map<char, int> mapaRoot;
+
+    for(char c = '0'; c <= '9'; c++) {
+        mapaRoot[c] = 1; // 0-9 vai pro node 1
+    }
+
+    addNode(nodes, mapaRoot);
+
+    // Node 1
+    std::unordered_map<char, int> mapaNode1;
+
+    for(char c = '0'; c <= '9'; c++) {
+        mapaNode1[c] = 1; // 0-9 continua no mesmo
+    }
+
+    mapaNode1['.'] = 2; // vai pro node 2
+    
+    addNode(nodes, mapaNode1);
+
+    // Node 2
+    std::unordered_map<char, int> mapaNode2;
+
+    for(char c = '0'; c <= '9'; c++) {
+        mapaNode2[c] = 3; // vai pro node 3 (garante que tenha numero depois do ponto)
+    }
+
+    int idxNode2 = addNode(nodes, mapaNode2);
+
+    // Node 3
+    std::unordered_map<char, int> mapaNode3;
+
+    for(char c = '0'; c <= '9'; c++) {
+        mapaNode3[c] = 3; // continua no mesmo
+    }
+
+    int idxNode3 = addNode(nodes, mapaNode3);
+
+    // tanto estado 2 quanto estado 3 são estados finais válidos
+    std::set<int> estadosFinais = {idxNode2, idxNode3};
+
+    return Automato(nodes,estadosFinais);
+}
