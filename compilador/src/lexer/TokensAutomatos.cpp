@@ -116,9 +116,11 @@ Automato criarAutomatoFlutuantes() {
     // mapa node incial
     std::unordered_map<char, int> mapaRoot;
 
-    for(char c = '0'; c <= '9'; c++) {
-        mapaRoot[c] = 1; // 0-9 vai pro node 1
+    for(char c = '1'; c <= '9'; c++) {
+        mapaRoot[c] = 1; // 1-9 vai pro node 1
     }
+
+    mapaRoot['0'] = 3; // vai pro node 3 
 
     addNode(nodes, mapaRoot);
 
@@ -137,7 +139,7 @@ Automato criarAutomatoFlutuantes() {
     std::unordered_map<char, int> mapaNode2;
 
     for(char c = '0'; c <= '9'; c++) {
-        mapaNode2[c] = 3; // vai pro node 3 (garante que tenha numero depois do ponto)
+        mapaNode2[c] = 4; // vai pro node 4 (garante que tenha numero depois do ponto)
     }
 
     int idxNode2 = addNode(nodes, mapaNode2);
@@ -145,14 +147,21 @@ Automato criarAutomatoFlutuantes() {
     // Node 3
     std::unordered_map<char, int> mapaNode3;
 
+    mapaNode3['.'] = 2; // vai pro node 2 (para caso de 0.numeros)
+
+    addNode(nodes, mapaNode3);
+
+    // Node 4
+    std::unordered_map<char, int> mapaNode4;
+
     for(char c = '0'; c <= '9'; c++) {
-        mapaNode3[c] = 3; // continua no mesmo
+        mapaNode4[c] = 4; // continua no mesmo
     }
 
-    int idxNode3 = addNode(nodes, mapaNode3);
+    int idxNode4 = addNode(nodes, mapaNode4);
 
-    // tanto estado 2 quanto estado 3 são estados finais válidos
-    std::set<int> estadosFinais = {idxNode2, idxNode3};
+    // tanto estado 2 quanto estado 4 são estados finais válidos
+    std::set<int> estadosFinais = {idxNode2, idxNode4};
 
     return Automato(nodes,estadosFinais);
 }
