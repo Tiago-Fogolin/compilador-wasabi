@@ -2,3 +2,5 @@
 #include "Automato.hpp"
 
 Automato criarAutomatoInteiros();
+
+Automato criarAutomatoBooleanos();

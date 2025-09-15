@@ -30,7 +30,7 @@ void AutomatoTester::testar(const std::vector<std::pair<std::string,bool>>& test
         }
     }
 
-    std::cout << "\nResumo: " << passados << "/" << total << " testes passaram.\n";
+    std::cout << "\nResumo: " << passados << "/" << total << " testes passaram.\n\n";
 }
 
 

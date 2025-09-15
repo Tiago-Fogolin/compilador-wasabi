@@ -1,3 +1,5 @@
+#ifndef AUTOMATO_TESTER_HPP
+#define AUTOMATO_TESTER_HPP
 #include <iostream>
 #include <vector>
 #include <string>
@@ -12,3 +14,5 @@ public:
 
     void testar(const std::vector<std::pair<std::string,bool>>& testes);
 };
+
+#endif

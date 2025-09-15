@@ -1,13 +1,9 @@
-#include <iostream>
-#include <string>
-#include "TokensAutomatos.hpp"
+#pragma once
 #include "AutomatoTester.hpp"
+#include "TokensAutomatos.hpp"
 
-
-
-int main() {
+void testarInteiros() {
     Automato automato = criarAutomatoInteiros();
-
     AutomatoTester tester(automato);
 
     std::vector<std::pair<std::string,bool>> testes = {
@@ -25,8 +21,5 @@ int main() {
     };
 
     std::cout << "Testando Automato de Inteiros\n";
-    
     tester.testar(testes);
-
-    return 0;
 }
