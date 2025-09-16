@@ -14,6 +14,7 @@ void testarInteiros() {
         {"123456", true},
         {"", false}, 
         {"01", false}, 
+        {"0J0", false}, 
         {"010", false}, 
         {"a123", false}, 
         {"123a4", false},
