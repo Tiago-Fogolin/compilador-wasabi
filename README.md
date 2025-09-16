@@ -28,5 +28,7 @@
 - dentro de compilador/tests/lexer/automatos/test\_runner.cpp  
 - adicionar o teste igual os outros la  
 - esqueci como compila nem deve funcionar.
+- Compila assim ó: (estar na pasta compilador) rodar ```mingw32-make -f .\MakeFile.mk```
+- Ele vai gerar um executavel na pasta builds
 
 prontoooo
