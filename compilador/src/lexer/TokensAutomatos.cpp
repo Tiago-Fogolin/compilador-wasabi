@@ -1,5 +1,9 @@
 #include <iostream>
-#include <TokensAutomatos.hpp>
+#include <vector>
+#include <unordered_map>
+#include <set>
+#include <string>
+#include <TokensAutomatos.hpp> // seu header de NodeAutomato e Automato
 
 struct SequenceResult {
     int first;
@@ -9,6 +13,10 @@ struct SequenceResult {
 int addNode(std::vector<NodeAutomato>& nodes, const std::unordered_map<char,int>& mapa) {
     nodes.push_back(NodeAutomato(mapa));
     return nodes.size() - 1;
+}
+
+void mapRange(std::unordered_map<char,int>& map, char start, char end, int dest) {
+    for(char c = start; c <= end; c++) map[c] = dest;
 }
 
 SequenceResult addSequence(std::vector<NodeAutomato>& nodes, const std::string& s) {
@@ -27,141 +35,86 @@ SequenceResult addSequence(std::vector<NodeAutomato>& nodes, const std::string& 
 }
 
 Automato criarAutomatoInteiros() {
-	std::vector<NodeAutomato> nodes;
+    std::vector<NodeAutomato> nodes;
 
-    // node 0
-    // mapa node incial
-    std::unordered_map<char, int> mapaRoot;
+    std::unordered_map<char,int> rootMap;
+    rootMap['0'] = 1;          // zero vai para node 1
+    mapRange(rootMap, '1', '9', 2); // 1-9 vai para node 2
+    addNode(nodes, rootMap);
 
-    mapaRoot['0'] = 1; // vai pro node 1 (continua no mesmo)
+    std::unordered_map<char,int> node1Map;
+    node1Map['0'] = 1; // zero continua no node1
+    int idxNode1 = addNode(nodes, node1Map);
 
-    for(char c = '1'; c <= '9'; c++) {
-        mapaRoot[c] = 2; // 1-9 vai pro node 2
-    }
+    std::unordered_map<char,int> node2Map;
+    mapRange(node2Map, '0', '9', 2); // 0-9 continua no node2
+    int idxNode2 = addNode(nodes, node2Map);
 
-    addNode(nodes, mapaRoot);
-
-    // Node 1
-    std::unordered_map<char, int> mapaNode1;
-    mapaNode1['0'] = 1; // se for zero continua no mesmo
-    
-    int idxNode1 = addNode(nodes, mapaNode1);
-
-
-    // Node 2
-    std::unordered_map<char, int> mapaNode2;
-    for(char c = '0'; c <= '9'; c++) {
-        mapaNode2[c] = 2; // 0-9 vai pro node 2 (continua no mesmo)
-    }
-
-    int idxNode2 = addNode(nodes, mapaNode2);
-
-
-    // tanto estado 1 quanto estado 2 são estados finais válidos
-    std::set<int> estadosFinais = {idxNode1, idxNode2};
-
-    return Automato(nodes,estadosFinais);
+    std::set<int> finais = {idxNode1, idxNode2};
+    return Automato(nodes, finais);
 }
 
 Automato criarAutomatoBooleanos() {
     std::vector<NodeAutomato> nodes;
+    int idxRoot = addNode(nodes, {}); // root vazio
 
-	addNode(nodes, {}); // criei o root primeiro aqui, mas com mapa vazio
+    SequenceResult falseSeq = addSequence(nodes, "false");
+    SequenceResult trueSeq  = addSequence(nodes, "true");
 
-	SequenceResult falseSeq = addSequence(nodes, "false");
-	SequenceResult trueSeq = addSequence(nodes, "true");
+    nodes[idxRoot].mapaDestino['f'] = falseSeq.first;
+    nodes[idxRoot].mapaDestino['t'] = trueSeq.first;
 
-	nodes[0].mapaDestino['f'] = falseSeq.first; // mapeio o root pro começo de cada um
-    nodes[0].mapaDestino['t'] = trueSeq.first;
-
-	std::set<int> finais = {falseSeq.last, trueSeq.last};
-
-	return Automato(nodes, finais);
+    std::set<int> finais = {falseSeq.last, trueSeq.last};
+    return Automato(nodes, finais);
 }
 
 Automato criarAutomatoIdentificadores() {
-	std::vector<NodeAutomato> nodes;
+    std::vector<NodeAutomato> nodes;
 
-	std::unordered_map<char, int> mapaRoot;
-	for(char c = 'a'; c <= 'z'; c++) {
-		mapaRoot[c] = 1;
-	}
+    std::unordered_map<char,int> rootMap;
+    mapRange(rootMap, 'a', 'z', 1);
+    mapRange(rootMap, 'A', 'Z', 1);
+    rootMap['_'] = 1;
+    addNode(nodes, rootMap);
 
-	for(char c = 'A'; c <= 'Z'; c++) {
-		mapaRoot[c] = 1;
-	}
+    std::unordered_map<char,int> node1Map = rootMap;
+    mapRange(node1Map, '0', '9', 1);
+    int idxNode1 = addNode(nodes, node1Map);
 
-	mapaRoot['_'] = 1;
-	
-	addNode(nodes, mapaRoot);
-
-	std::unordered_map<char, int> mapaNode1 = mapaRoot;
-
-	for(char c = '0'; c <= '9'; c++) {
-		mapaNode1[c] = 1;
-	}
-
-	addNode(nodes, mapaNode1);
-
-	std::set<int> estadosFinais = {1};
-
-	return Automato(nodes, estadosFinais);
+    std::set<int> finais = {idxNode1};
+    return Automato(nodes, finais);
 }
 
 Automato criarAutomatoFlutuantes() {
-    // TODO: rejeitar 0 seguido de outros números
-	std::vector<NodeAutomato> nodes;
+    std::vector<NodeAutomato> nodes;
 
-    // node 0
-    // mapa node incial
-    std::unordered_map<char, int> mapaRoot;
+    // Root
+    std::unordered_map<char,int> rootMap;
+    mapRange(rootMap, '1', '9', 1);
+    rootMap['0'] = 3; // caso de 0.x
+    addNode(nodes, rootMap);
 
-    for(char c = '1'; c <= '9'; c++) {
-        mapaRoot[c] = 1; // 1-9 vai pro node 1
-    }
+    // Node 1: dígitos 1-9
+    std::unordered_map<char,int> node1Map;
+    mapRange(node1Map, '0', '9', 1); // continua no node1
+    node1Map['.'] = 2; // ponto decimal
+    addNode(nodes, node1Map);
 
-    mapaRoot['0'] = 3; // vai pro node 3 
+    // Node 2: primeiro dígito depois do ponto
+    std::unordered_map<char,int> node2Map;
+    mapRange(node2Map, '0', '9', 4); // vai para node4
+    int idxNode2 = addNode(nodes, node2Map);
 
-    addNode(nodes, mapaRoot);
+    // Node 3: zero seguido de ponto
+    std::unordered_map<char,int> node3Map;
+    node3Map['.'] = 2;
+    addNode(nodes, node3Map);
 
-    // Node 1
-    std::unordered_map<char, int> mapaNode1;
+    // Node 4: dígitos depois do ponto
+    std::unordered_map<char,int> node4Map;
+    mapRange(node4Map, '0', '9', 4);
+    int idxNode4 = addNode(nodes, node4Map);
 
-    for(char c = '0'; c <= '9'; c++) {
-        mapaNode1[c] = 1; // 0-9 continua no mesmo
-    }
-
-    mapaNode1['.'] = 2; // vai pro node 2
-    
-    addNode(nodes, mapaNode1);
-
-    // Node 2
-    std::unordered_map<char, int> mapaNode2;
-
-    for(char c = '0'; c <= '9'; c++) {
-        mapaNode2[c] = 4; // vai pro node 4 (garante que tenha numero depois do ponto)
-    }
-
-    int idxNode2 = addNode(nodes, mapaNode2);
-
-    // Node 3
-    std::unordered_map<char, int> mapaNode3;
-
-    mapaNode3['.'] = 2; // vai pro node 2 (para caso de 0.numeros)
-
-    addNode(nodes, mapaNode3);
-
-    // Node 4
-    std::unordered_map<char, int> mapaNode4;
-
-    for(char c = '0'; c <= '9'; c++) {
-        mapaNode4[c] = 4; // continua no mesmo
-    }
-
-    int idxNode4 = addNode(nodes, mapaNode4);
-
-    // tanto estado 2 quanto estado 4 são estados finais válidos
-    std::set<int> estadosFinais = {idxNode2, idxNode4};
-
-    return Automato(nodes,estadosFinais);
+    std::set<int> finais = {idxNode2, idxNode4};
+    return Automato(nodes, finais);
 }
