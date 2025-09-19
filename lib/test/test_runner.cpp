@@ -9,6 +9,7 @@
 #include "test/lexer_test/TestAutomatoAritmeticos.hpp"
 #include "test/lexer_test/TestAutomatoBitwise.hpp"
 #include "test/lexer_test/TestAutomatoAtribuicao.hpp"
+#include "test/lexer_test/TestAutomatoPalavrasReservadas.hpp"
 
 int main() {
     testarInteiros();
@@ -22,5 +23,6 @@ int main() {
     testarChar();
     testarEspacos();
     testarStrings();
+    testarPalavrasReservadas();
     return 0;
 }

@@ -38,7 +38,7 @@ public:
 
     ResultadoProcessamento processarCaracter(char c);
 
-    bool processarString(const std::string& s);
+    virtual bool processarString(const std::string& s);
 
     virtual std::unique_ptr<Automato> build() = 0;
 
