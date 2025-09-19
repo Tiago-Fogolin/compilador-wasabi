@@ -10,6 +10,8 @@
 #include "test/lexer_test/TestAutomatoBitwise.hpp"
 #include "test/lexer_test/TestAutomatoAtribuicao.hpp"
 #include "test/lexer_test/TestAutomatoPalavrasReservadas.hpp"
+#include "test/lexer_test/TestAutomatoLogico.hpp"
+#include "test/lexer_test/TestAutomatoCientifico.hpp"
 
 int main() {
     testarInteiros();
@@ -24,5 +26,7 @@ int main() {
     testarEspacos();
     testarStrings();
     testarPalavrasReservadas();
+    testarLogicos();
+    testarCientificos();
     return 0;
 }
