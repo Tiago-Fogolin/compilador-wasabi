@@ -1,4 +1,4 @@
-# AFD - Literais de Lógicos
+# AFD - Notação Científica
 
 ```mermaid
 stateDiagram-v2
