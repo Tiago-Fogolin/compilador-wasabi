@@ -12,6 +12,8 @@
 #include "test/lexer_test/TestAutomatoPalavrasReservadas.hpp"
 #include "test/lexer_test/TestAutomatoLogico.hpp"
 #include "test/lexer_test/TestAutomatoCientifico.hpp"
+#include "test/lexer_test/TestAutomatoDelimitadores.hpp"
+#include "test/lexer_test/TestAutomatoComentarios.hpp"
 
 int main() {
     testarInteiros();
@@ -28,5 +30,7 @@ int main() {
     testarPalavrasReservadas();
     testarLogicos();
     testarCientificos();
+    testarDelimitadores();
+    testarComentarios();
     return 0;
 }

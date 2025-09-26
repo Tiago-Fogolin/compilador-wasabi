@@ -28,13 +28,13 @@ private:
     bool verificaTransicao(char caracter);
 
     int recuperarProximoEstado(char caracter);
-
-    bool verificaEstadoFinal();
 public:
     std::vector<NodeAutomato> nodes;
     std::set<int> estadosFinais; // estados finais válidos
 
     Automato(std::vector<NodeAutomato> nodes, std::set<int> estadosFinais);
+
+    bool verificaEstadoFinal();
 
     ResultadoProcessamento processarCaracter(char c);
 
@@ -43,4 +43,9 @@ public:
     virtual std::unique_ptr<Automato> build() = 0;
 
     virtual std::unique_ptr<Automato> clone() const = 0;
+};
+
+class AutomatoFactory {
+public:
+    static std::vector<std::pair<std::string, std::unique_ptr<Automato>>> getAutomatos();
 };

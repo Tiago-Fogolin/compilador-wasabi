@@ -1,8 +1,8 @@
-# Compilador - README
+# Lexer - README
 
 ## Compilação
 
-Para compilar o compilador, você precisa estar **na pasta raiz do projeto** e ter o `make` e o `g++` instalados.
+Para compilar o lexer, você precisa estar **na pasta raiz do projeto** e ter o `make` instalado.
 
 ### No Windows
 

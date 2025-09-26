@@ -19,10 +19,10 @@ else
     FIND_CMD = find
 endif
 
+# Inclui todos os .cpp da lib, exceto compilador.cpp
+SRC_FILES := $(shell $(FIND_CMD) $(SRC_DIR) -name "*.cpp" ! -name "compilador.cpp")
 
-SRC_FILES := $(shell $(FIND_CMD) $(SRC_DIR) -name "*.cpp" ! -path "*/test/*")
-
-TARGET = $(BUILD_DIR)/compilador$(TARGET_EXT)
+TARGET = $(BUILD_DIR)/testes$(TARGET_EXT)
 
 all: $(BUILD_DIR) $(TARGET)
 

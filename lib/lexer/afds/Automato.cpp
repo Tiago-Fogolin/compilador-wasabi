@@ -2,6 +2,22 @@
 #include <iostream>
 #include <automato_base/Automato.hpp>
 
+#include "automatos/AutomatoAritmeticos.hpp"
+#include "automatos/AutomatoAtribuicao.hpp"
+#include "automatos/AutomatoBitwise.hpp"
+#include "automatos/AutomatoBooleanos.hpp"
+#include "automatos/AutomatoChar.hpp"
+#include "automatos/AutomatoCientifico.hpp"
+#include "automatos/AutomatoEspacos.hpp"
+#include "automatos/AutomatoFlutuantes.hpp"
+#include "automatos/AutomatoIdentificadores.hpp"
+#include "automatos/AutomatoInteiros.hpp"
+#include "automatos/AutomatoLogico.hpp"
+#include "automatos/AutomatoPalavrasReservadas.hpp"
+#include "automatos/AutomatoRelacionais.hpp"
+#include "automatos/AutomatoString.hpp"
+#include "automatos/AutomatoDelimitadores.hpp"
+#include "automatos/AutomatoComentarios.hpp"
 
 
 NodeAutomato::NodeAutomato(std::unordered_map<char, int> mapaDestino) {
@@ -66,4 +82,27 @@ bool Automato::processarString(const std::string& s) {
     }
 
     return (resultado == ResultadoProcessamento::ACEITO);
+}
+
+std::vector<std::pair<std::string, std::unique_ptr<Automato>>> AutomatoFactory::getAutomatos() {
+    std::vector<std::pair<std::string, std::unique_ptr<Automato>>> automatos;
+    
+    automatos.push_back({"Comentarios", std::make_unique<AutomatoComentarios>()});
+    automatos.push_back({"Espacos", std::make_unique<AutomatoEspacos>()});
+    automatos.push_back({"Delimitadores", std::make_unique<AutomatoDelimitadores>()});
+    automatos.push_back({"Aritmeticos", std::make_unique<AutomatoAritmeticos>()});
+    automatos.push_back({"Flutuantes", std::make_unique<AutomatoFlutuantes>()});
+    automatos.push_back({"Inteiros", std::make_unique<AutomatoInteiros>()});
+    automatos.push_back({"PalavrasReservadas", std::make_unique<AutomatoPalavrasReservadas>()});
+    automatos.push_back({"Identificadores", std::make_unique<AutomatoIdentificadores>()});
+    automatos.push_back({"Atribuicao", std::make_unique<AutomatoAtribuicao>()});
+    automatos.push_back({"Bitwise", std::make_unique<AutomatoBitwise>()});
+    automatos.push_back({"Booleanos", std::make_unique<AutomatoBooleanos>()});
+    automatos.push_back({"Char", std::make_unique<AutomatoChar>()});
+    automatos.push_back({"Cientifico", std::make_unique<AutomatoCientifico>()});
+    automatos.push_back({"Logico", std::make_unique<AutomatoLogico>()});
+    automatos.push_back({"Relacionais", std::make_unique<AutomatoRelacionais>()});
+    automatos.push_back({"String", std::make_unique<AutomatoString>()});
+
+    return automatos;
 }
