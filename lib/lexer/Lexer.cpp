@@ -1,6 +1,8 @@
 #include "../include/lexer/Lexer.hpp"
 #include "../include/automato_base/Automato.hpp"
+#include "../include/automatos/AutomatoLexer.hpp"
 #include <iostream>
+#include <cctype> // Necessário para isalpha e isalnum
 
 Lexer::Lexer() {
     this->palavrasReservadas = {
@@ -10,160 +12,105 @@ Lexer::Lexer() {
     };
 }
 
-void avancar(const std::string& texto, size_t& indice, size_t& linha, size_t qtd = 1) {
-    for (size_t i = 0; i < qtd && indice < texto.size(); i++) {
-        if (texto[indice] == '\n') linha++;
-        indice++;
-    }
-}
-
-bool ehEspaco(char c) {
-    return c == ' ' || c == '\t' || c == '\n';
-}
-
-bool ehDelimitador(char c) {
-    return c == ';' || c == '(' || c == ')' || c == ',' || 
-           c == ':' || c == '[' || c == ']';
-}
-
-bool ehOperador(char c) {
-    return c == '+' || c == '-' || c == '*' || c == '/' || c == '%' || c == '=' || c == '<' || c == '>';
-}
-
-// alguém com mais habilidade precisa reescrever isso aqui
-/*
-    Algumas coisas pra arrumar nessa gambiarra:
-        - Precisa extrair número negativo, o automato não reconhece nem essa função extrai direito
-        - Número científico ainda não ta extraindo
-*/
-std::string extrairProximoToken(const std::string& texto, size_t& indice, size_t& linha) {
-    // 1. Ignorar espaços
-    while (indice < texto.size() && ehEspaco(texto[indice])) {
-        avancar(texto, indice, linha);
-    }
-    if (indice >= texto.size()) return "";
-
-    size_t start = indice;
-
-    // 2. Comentário de linha //
-    if (texto[indice] == '/' && indice + 1 < texto.size() && texto[indice + 1] == '/') {
-        avancar(texto, indice, linha, 2); // consome "//"
-        while (indice < texto.size() && texto[indice] != '\n') {
-            avancar(texto, indice, linha);
-        }
-        return texto.substr(start, indice - start);
-    }
-
-    // 3. Comentário de bloco /* ... */
-    if (texto[indice] == '/' && indice + 1 < texto.size() && texto[indice + 1] == '*') {
-        avancar(texto, indice, linha, 2); // consome "/*"
-        while (indice + 1 < texto.size()) {
-            if (texto[indice] == '*' && texto[indice + 1] == '/') {
-                avancar(texto, indice, linha, 2);
-                break;
-            }
-            avancar(texto, indice, linha);
-        }
-        return texto.substr(start, indice - start);
-    }
-
-    // 4. Identificador ou palavra reservada
-    if (isalpha(texto[indice]) || texto[indice] == '_') {
-        while (indice < texto.size() && (isalnum(texto[indice]) || texto[indice] == '_')) {
-            avancar(texto, indice, linha);
-        }
-        return texto.substr(start, indice - start);
-    }
-
-    // 5. Número (inteiro ou float)
-    if (isdigit(texto[indice])) {
-        while (indice < texto.size() && isdigit(texto[indice])) {
-            avancar(texto, indice, linha);
-        }
-
-        // Checa se vem letra depois do número → identificador inválido
-        if (indice < texto.size() && (isalpha(texto[indice]) || texto[indice] == '_')) {
-            std::cerr << "Erro: de sintaxe na linha " << linha 
-                      << ": '" << texto.substr(start, 10) << "...'\n";
-            
-            while (indice < texto.size() && !ehEspaco(texto[indice]) && !ehDelimitador(texto[indice])) {
-                avancar(texto, indice, linha);
-            }
-            return "";
-        }
-
-        // Ponto decimal
-        if (indice < texto.size() && texto[indice] == '.' && (indice + 1 < texto.size() && isdigit(texto[indice+1]))) {
-            avancar(texto, indice, linha); // consome ponto
-            while (indice < texto.size() && isdigit(texto[indice])) {
-                avancar(texto, indice, linha);
-            }
-        }
-
-        return texto.substr(start, indice - start);
-    }
-
-    // 6. Delimitadores simples
-    if (ehDelimitador(texto[indice])) {
-        avancar(texto, indice, linha);
-        return texto.substr(start, 1);
-    }
-
-    // 7. Ponto isolado (ex: obj.x)
-    if (texto[indice] == '.') {
-        avancar(texto, indice, linha);
-        return ".";
-    }
-
-    // 8. Operadores
-    if (ehOperador(texto[indice])) {
-        size_t startOp = indice;
-        
-        if (indice + 1 < texto.size()) {
-            std::string dois = texto.substr(indice, 2);
-            if (dois == "**" || dois == "==" || dois == "<=" || dois == ">=" || dois == "!=") {
-                avancar(texto, indice, linha, 2);
-                return dois;
-            }
-        }
-
-        std::string op(1, texto[indice]);
-        avancar(texto, indice, linha);
-        return op;
-    }
-
-    // 9. Outros símbolos
-    std::cerr << "Erro: caractere inesperado '" << texto[indice] 
-              << "' na linha " << linha << "\n";
-    avancar(texto, indice, linha);
-    return "";
-}
-
-
-std::unordered_map<std::string, std::vector<std::string>> Lexer::analisarTexto(std::string texto) {
+std::unordered_map<std::string, std::vector<std::string>> Lexer::analisarTexto(const std::string texto) {
     std::unordered_map<std::string, std::vector<std::string>> tokensAceitos;
-    std::vector<std::pair<std::string, std::unique_ptr<Automato>>> automatos = AutomatoFactory::getAutomatos();
+    AutomatoLexer automato;
 
     size_t i = 0;
-    size_t linha_atual = 1;
+    size_t linha = 1;
+
     while (i < texto.size()) {
+        int estadoAtual = 0;
+        int ultimoEstadoFinal = -1;
+        size_t ultimoPosFinal = i - 1;
+        TokenType tipoFinal;
 
-        std::string token = extrairProximoToken(texto, i, linha_atual);
-        if (token.empty()) continue;
+        size_t j = i;
+        for (; j < texto.size(); j++) {
+            char c = texto[j];
 
-        bool reconheceu = false;
-        for (auto& [tipo, automato] : automatos) {
-            if (automato->processarString(token)) {
-                tokensAceitos[tipo].push_back(token);
-                reconheceu = true;
+            auto it = automato.nodes[estadoAtual].mapaDestino.find(c);
+            if (it == automato.nodes[estadoAtual].mapaDestino.end()) {
+                // não há transição: termina
                 break;
+            }
+
+            estadoAtual = it->second;
+
+            if (automato.estadosFinais.count(estadoAtual)) {
+                ultimoEstadoFinal = estadoAtual;
+                ultimoPosFinal = j;
+                tipoFinal = automato.estadoFinaisTipos.at(estadoAtual);
             }
         }
 
-        if (!reconheceu) {
-            std::cerr << "Erro de sintaxe na linha " << linha_atual <<  ":'" << token << "'\n";
-            return tokensAceitos;
+        if (ultimoEstadoFinal == -1) {
+            std::cerr << "Erro léxico na linha " << linha
+                      << ": caractere inesperado '" << texto[i] << "'\n";
+            i++;
+            continue;
         }
+
+        std::string token = texto.substr(i, ultimoPosFinal - i + 1);
+
+        // <<< FIX: Pós-validação para números seguidos por letras ou pontos
+        if (tipoFinal == TokenType::INTEGER || tipoFinal == TokenType::FLOAT || tipoFinal == TokenType::SCIENTIFIC) {
+            size_t posAposToken = ultimoPosFinal + 1;
+            if (posAposToken < texto.size()) {
+                char charAposToken = texto[posAposToken];
+
+                // Caso 1: Número seguido por letra (ex: 7calcular_area)
+                if (std::isalpha(charAposToken) || charAposToken == '_') {
+                    // Consome o resto da sequência inválida para reportar o erro completo
+                    size_t fimSequenciaInvalida = posAposToken;
+                    while (fimSequenciaInvalida < texto.size() && (std::isalnum(texto[fimSequenciaInvalida]) || texto[fimSequenciaInvalida] == '_')) {
+                        fimSequenciaInvalida++;
+                    }
+                    std::string sequenciaInvalida = texto.substr(i, fimSequenciaInvalida - i);
+
+                    std::cerr << "Erro lexico na linha " << linha
+                              << ": identificador invalido '" << sequenciaInvalida << "\n";
+                    
+                    i = fimSequenciaInvalida;
+                    continue; 
+                }
+                
+                // Caso 2: Número que já tem um ponto é seguido por outro ponto (ex: 9...10)
+                if (charAposToken == '.' && token.find('.') != std::string::npos) {
+                    // Consome o resto da sequência inválida para reportar o erro completo
+                    size_t fimSequenciaInvalida = posAposToken;
+                    while (fimSequenciaInvalida < texto.size() && (texto[fimSequenciaInvalida] == '.' || std::isdigit(texto[fimSequenciaInvalida]))) {
+                        fimSequenciaInvalida++;
+                    }
+                    std::string sequenciaInvalida = texto.substr(i, fimSequenciaInvalida - i);
+                    
+                    std::cerr << "Erro lexico na linha " << linha
+                              << ": identificador invalido '" << sequenciaInvalida << "\n";
+
+                    i = fimSequenciaInvalida;
+                    continue;
+                }
+            }
+        }
+
+        if (tipoFinal == TokenType::IDENTIFIER) {
+            if (palavrasReservadas.count(token)) {
+                tipoFinal = TokenType::KEYWORD;
+            }
+        }
+        
+        if (tipoFinal != TokenType::WHITESPACE && tipoFinal != TokenType::COMMENT) {
+            tokensAceitos[tokenTypeToString(tipoFinal)].push_back(token);
+        }
+
+        // Atualiza a contagem de linhas
+        for (char c : token) {
+            if (c == '\n') {
+                linha++;
+            }
+        }
+
+        i = ultimoPosFinal + 1; 
     }
 
     return tokensAceitos;

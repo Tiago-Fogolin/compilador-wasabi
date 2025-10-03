@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
 
     
     for (const auto& [tipo, listaTokens] : tokensAceitos) {
-        if(tipo == "Espacos") continue;
+        if(tipo == "WHITESPACE") continue;
         std::cout << "TokenType: " << tipo << "\n";
         for (const auto& token : listaTokens) {
             std::cout << "  " << token << "\n";

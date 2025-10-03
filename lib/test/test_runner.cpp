@@ -14,23 +14,25 @@
 #include "test/lexer_test/TestAutomatoCientifico.hpp"
 #include "test/lexer_test/TestAutomatoDelimitadores.hpp"
 #include "test/lexer_test/TestAutomatoComentarios.hpp"
+#include "test/lexer_test/TestAutomatoLexer.hpp"
 
 int main() {
-    testarInteiros();
-    testarBooleanos();
-    testarIdentificadores();
-    testarFlutuantes();
-    testarAritmeticos();
-    testarRelacionais();
-    testarBitwise();
-    testarAtribuicao();
-    testarChar();
-    testarEspacos();
-    testarStrings();
-    testarPalavrasReservadas();
-    testarLogicos();
-    testarCientificos();
-    testarDelimitadores();
-    testarComentarios();
+    // testarInteiros();
+    // testarBooleanos();
+    // testarIdentificadores();
+    // testarFlutuantes();
+    // testarAritmeticos();
+    // testarRelacionais();
+    // testarBitwise();
+    // testarAtribuicao();
+    // testarChar();
+    // testarEspacos();
+    // testarStrings();
+    // testarPalavrasReservadas();
+    // testarLogicos();
+    // testarCientificos();
+    // testarDelimitadores();
+    // testarComentarios();
+    testarLexer();
     return 0;
 }
