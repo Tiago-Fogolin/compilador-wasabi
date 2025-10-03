@@ -84,6 +84,26 @@ bool Automato::processarString(const std::string& s) {
     return (resultado == ResultadoProcessamento::ACEITO);
 }
 
+int Automato::estadoAtual() {
+    return indiceEstado;
+}
+
+int Automato::processarStringComEstadoFinal(const std::string& s, bool& aceito) {
+    auto copiaAutomato = clone(); 
+    ResultadoProcessamento resultado = ResultadoProcessamento::INVALIDO;
+
+    for(char c : s) {
+        resultado = copiaAutomato->processarCaracter(c);
+        if(resultado == ResultadoProcessamento::INVALIDO) {
+            aceito = false;
+            return -1;
+        }
+    }
+
+    aceito = (resultado == ResultadoProcessamento::ACEITO);
+    return copiaAutomato->estadoAtual();
+}
+
 std::vector<std::pair<std::string, std::unique_ptr<Automato>>> AutomatoFactory::getAutomatos() {
     std::vector<std::pair<std::string, std::unique_ptr<Automato>>> automatos;
     
