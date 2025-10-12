@@ -2,7 +2,8 @@
 #include "../include/automato_base/Automato.hpp"
 #include "../include/automatos/AutomatoLexer.hpp"
 #include <iostream>
-#include <cctype> // Necessário para isalpha e isalnum
+#include <algorithm>
+#include <vector>
 
 Lexer::Lexer() {
     this->palavrasReservadas = {
@@ -11,6 +12,25 @@ Lexer::Lexer() {
         "int","float","string","bool","tuple","dict","set","void","null"
     };
 }
+
+std::vector<TokenType> ordemPrioridade = {
+    TokenType::COMMENT,
+    TokenType::STRING_LITERAL,
+    TokenType::CHAR_LITERAL,
+    TokenType::KEYWORD,
+    TokenType::IDENTIFIER,
+    TokenType::SCIENTIFIC,
+    TokenType::FLOAT,
+    TokenType::INTEGER,
+    TokenType::BITWISE_SHIFT,
+    TokenType::LOGICAL,
+    TokenType::RELATIONAL,
+    TokenType::ASSIGN,
+    TokenType::OPERATION,
+    TokenType::BITWISE,
+    TokenType::DELIMITER,
+    TokenType::WHITESPACE
+};
 
 std::unordered_map<std::string, std::vector<std::string>> Lexer::analisarTexto(const std::string texto) {
     std::unordered_map<std::string, std::vector<std::string>> tokensAceitos;
@@ -22,8 +42,7 @@ std::unordered_map<std::string, std::vector<std::string>> Lexer::analisarTexto(c
     while (i < texto.size()) {
         int estadoAtual = 0;
         int ultimoEstadoFinal = -1;
-        size_t ultimoPosFinal = i - 1;
-        TokenType tipoFinal;
+        std::vector<std::pair<int,TokenType>> estadosFinais;
 
         size_t j = i;
         for (; j < texto.size(); j++) {
@@ -31,7 +50,6 @@ std::unordered_map<std::string, std::vector<std::string>> Lexer::analisarTexto(c
 
             auto it = automato.nodes[estadoAtual].mapaDestino.find(c);
             if (it == automato.nodes[estadoAtual].mapaDestino.end()) {
-                // não há transição: termina
                 break;
             }
 
@@ -39,8 +57,13 @@ std::unordered_map<std::string, std::vector<std::string>> Lexer::analisarTexto(c
 
             if (automato.estadosFinais.count(estadoAtual)) {
                 ultimoEstadoFinal = estadoAtual;
-                ultimoPosFinal = j;
-                tipoFinal = automato.estadoFinaisTipos.at(estadoAtual);
+                
+                std::pair<int,TokenType> posicaoTipo;
+
+                posicaoTipo.first = j;
+                posicaoTipo.second = automato.estadoFinaisTipos.at(estadoAtual);
+
+                estadosFinais.push_back(posicaoTipo);
             }
         }
 
@@ -51,47 +74,32 @@ std::unordered_map<std::string, std::vector<std::string>> Lexer::analisarTexto(c
             continue;
         }
 
-        std::string token = texto.substr(i, ultimoPosFinal - i + 1);
+        int ordemEstadoFinal = ordemPrioridade.size();
+        int indiceEstadoFinal = 0;
+        size_t posFinalMax = 0;
+        for(int x = 0; x < estadosFinais.size(); x++) {
+            auto estadoFinal = estadosFinais[x];
 
-        // <<< FIX: Pós-validação para números seguidos por letras ou pontos
-        if (tipoFinal == TokenType::INTEGER || tipoFinal == TokenType::FLOAT || tipoFinal == TokenType::SCIENTIFIC) {
-            size_t posAposToken = ultimoPosFinal + 1;
-            if (posAposToken < texto.size()) {
-                char charAposToken = texto[posAposToken];
+            size_t posFinal = estadoFinal.first;
+            TokenType tipo = estadoFinal.second;
+            auto it = std::find(ordemPrioridade.begin(), ordemPrioridade.end(), tipo);
 
-                // Caso 1: Número seguido por letra (ex: 7calcular_area)
-                if (std::isalpha(charAposToken) || charAposToken == '_') {
-                    // Consome o resto da sequência inválida para reportar o erro completo
-                    size_t fimSequenciaInvalida = posAposToken;
-                    while (fimSequenciaInvalida < texto.size() && (std::isalnum(texto[fimSequenciaInvalida]) || texto[fimSequenciaInvalida] == '_')) {
-                        fimSequenciaInvalida++;
-                    }
-                    std::string sequenciaInvalida = texto.substr(i, fimSequenciaInvalida - i);
+            int ordemEstado;
+            if (it != ordemPrioridade.end()) {
+                ordemEstado = it - ordemPrioridade.begin();
+            }
 
-                    std::cerr << "Erro lexico na linha " << linha
-                              << ": identificador invalido '" << sequenciaInvalida << "\n";
-                    
-                    i = fimSequenciaInvalida;
-                    continue; 
-                }
-                
-                // Caso 2: Número que já tem um ponto é seguido por outro ponto (ex: 9...10)
-                if (charAposToken == '.' && token.find('.') != std::string::npos) {
-                    // Consome o resto da sequência inválida para reportar o erro completo
-                    size_t fimSequenciaInvalida = posAposToken;
-                    while (fimSequenciaInvalida < texto.size() && (texto[fimSequenciaInvalida] == '.' || std::isdigit(texto[fimSequenciaInvalida]))) {
-                        fimSequenciaInvalida++;
-                    }
-                    std::string sequenciaInvalida = texto.substr(i, fimSequenciaInvalida - i);
-                    
-                    std::cerr << "Erro lexico na linha " << linha
-                              << ": identificador invalido '" << sequenciaInvalida << "\n";
-
-                    i = fimSequenciaInvalida;
-                    continue;
-                }
+            if (posFinal > posFinalMax || (posFinal == posFinalMax && ordemEstado < ordemEstadoFinal)) {
+                posFinalMax = posFinal;
+                ordemEstadoFinal = ordemEstado;
+                indiceEstadoFinal = x;
             }
         }
+
+        int ultimoPosFinal = estadosFinais[indiceEstadoFinal].first;
+        TokenType tipoFinal = estadosFinais[indiceEstadoFinal].second;
+
+        std::string token = texto.substr(i, ultimoPosFinal - i + 1);
 
         if (tipoFinal == TokenType::IDENTIFIER) {
             if (palavrasReservadas.count(token)) {
@@ -103,7 +111,6 @@ std::unordered_map<std::string, std::vector<std::string>> Lexer::analisarTexto(c
             tokensAceitos[tokenTypeToString(tipoFinal)].push_back(token);
         }
 
-        // Atualiza a contagem de linhas
         for (char c : token) {
             if (c == '\n') {
                 linha++;
