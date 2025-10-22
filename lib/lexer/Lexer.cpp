@@ -1,6 +1,7 @@
 #include "../include/lexer/Lexer.hpp"
 #include "../include/automato_base/Automato.hpp"
 #include "../include/automatos/AutomatoLexer.hpp"
+#include "../include/lexer/Token.hpp"
 #include <iostream>
 #include <algorithm>
 #include <vector>
@@ -32,17 +33,22 @@ std::vector<TokenType> ordemPrioridade = {
     TokenType::WHITESPACE
 };
 
-std::unordered_map<std::string, std::vector<std::string>> Lexer::analisarTexto(const std::string texto) {
-    std::unordered_map<std::string, std::vector<std::string>> tokensAceitos;
+std::vector<Token> Lexer::analisarTexto(std::string& bloco) {
+    std::string texto = bloco;
+    std::vector<Token> tokensAceitos;
     AutomatoLexer automato;
+    
 
     size_t i = 0;
     size_t linha = 1;
+    size_t ultimaPosProcessada = 0;
 
     while (i < texto.size()) {
         int estadoAtual = 0;
         int ultimoEstadoFinal = -1;
         std::vector<std::pair<int,TokenType>> estadosFinais;
+        TokenType tipoUltimoEstadoFinal;
+        bool tokenPodeContinuar = false;
 
         size_t j = i;
         for (; j < texto.size(); j++) {
@@ -108,7 +114,13 @@ std::unordered_map<std::string, std::vector<std::string>> Lexer::analisarTexto(c
         }
         
         if (tipoFinal != TokenType::WHITESPACE && tipoFinal != TokenType::COMMENT) {
-            tokensAceitos[tokenTypeToString(tipoFinal)].push_back(token);
+            Token tokenStruct;
+            tokenStruct.tipo = tipoFinal;
+            tokenStruct.valor = token;
+            tokenStruct.linha = linha;
+            tokenStruct.coluna = i;
+            tokensAceitos.push_back(tokenStruct);
+            ultimaPosProcessada = i + 1;
         }
 
         for (char c : token) {
@@ -119,6 +131,7 @@ std::unordered_map<std::string, std::vector<std::string>> Lexer::analisarTexto(c
 
         i = ultimoPosFinal + 1; 
     }
+
 
     return tokensAceitos;
 }

@@ -2,13 +2,16 @@
 #include <unordered_map>
 #include <vector>
 #include <string>
+#include <lexer/Token.hpp>
 
 class Lexer {
 private:
+    int estadoAtual = 0;
+    std::string bufferIncompleto;
     std::unordered_set<std::string> palavrasReservadas;
 
 public:
     Lexer();
 
-    std::unordered_map<std::string, std::vector<std::string>> analisarTexto(std::string texto);
+    std::vector<Token> analisarTexto(std::string& texto);
 };

@@ -4,8 +4,10 @@
 #include <fstream>
 #include <unordered_map>
 #include <unordered_set>
+#include <algorithm>
 #include "include/lexer/Lexer.hpp"
 
+constexpr size_t BUFFER_SIZE = 4096;
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
@@ -14,26 +16,57 @@ int main(int argc, char* argv[]) {
     }
 
     std::string caminhoArquivo = argv[1];
-    std::ifstream arquivo(caminhoArquivo);
+    std::ifstream arquivo(caminhoArquivo, std::ios::binary);
     if (!arquivo.is_open()) {
         std::cerr << "Erro ao abrir o arquivo: " << caminhoArquivo << "\n";
         return 1;
     }
 
-    std::string texto((std::istreambuf_iterator<char>(arquivo)),
-                      std::istreambuf_iterator<char>());
-
     Lexer lexer;
+    std::string resto;
+    size_t linhaBase = 1;
 
-    std::unordered_map<std::string, std::vector<std::string>> tokensAceitos = lexer.analisarTexto(texto);
+    std::vector<Token> tokensAceitos;
 
-    
-    for (const auto& [tipo, listaTokens] : tokensAceitos) {
-        if(tipo == "WHITESPACE") continue;
-        std::cout << "TokenType: " << tipo << "\n";
-        for (const auto& token : listaTokens) {
-            std::cout << "  " << token << "\n";
+    char buffer[BUFFER_SIZE];
+
+    while (arquivo.read(buffer, BUFFER_SIZE) || arquivo.gcount() > 0) {
+
+
+        size_t bytesLidos = arquivo.gcount();
+        std::string bloco = resto + std::string(buffer, bytesLidos);
+        std::vector<Token> blocTokens = lexer.analisarTexto(bloco);
+
+        tokensAceitos.insert(tokensAceitos.end(), blocTokens.begin(), blocTokens.end());
+
+        if (!blocTokens.empty()) {
+            const Token& ultimo = blocTokens.back();
+            size_t posUltimo = bloco.find(ultimo.valor);
+            if (posUltimo + ultimo.valor.size() < bloco.size()) {
+                resto = bloco.substr(posUltimo + ultimo.valor.size());
+            } else {
+                resto.clear();
+            }
+        } else {
+            resto = bloco;
         }
+
+
+        linhaBase += std::count(bloco.begin(), bloco.end(), '\n');
+    }
+
+
+    if (!resto.empty()) {
+        std::vector<Token> blocTokens = lexer.analisarTexto(resto);
+        tokensAceitos.insert(tokensAceitos.end(), blocTokens.begin(), blocTokens.end());
+    }
+    
+    for (const auto& token : tokensAceitos) {
+        TokenType tipo = token.tipo;
+        if(tipo == TokenType::WHITESPACE) continue;
+        std::cout << "TokenType: " << tokenTypeToString(tipo) << "\n";
+        std::cout << "  " << token.valor << "\n";
+        
     }
 
 
