@@ -1,143 +1,118 @@
-# **Definição da Gramática Inicial**
-## 1. Definição Completa G = (V, T, P, S)
-V = {Programa, BlocoDeclarações, Declaração, DeclaraçãoStruct, DeclaraçãoInterface,
+# **Definição Formal da Gramática**
+G = `(V, Σ, P, S)`
+
+V = `{Programa, BlocoDeclarações, Declaração, DeclaraçãoStruct, DeclaraçãoInterface,
      DeclaraçãoMétodo, DeclaraçãoAtributo, DeclaraçãoFunção, DeclaraçãoVariável,
      BlocoComandos, Comando, ComandoCondicional, ComandoLaço, ComandoAtribuição,
      ComandoChamada, ComandoRetorno, ComandoElse, Expressão, ExpressãoAritmética,
      ExpressãoRelacional, ExpressãoLógica, Termo, Fator, ListaParametros,
-     ListaArgumentos, Tipo, Atributo, ListaAtributos, ListaMétodos}
+     ListaArgumentos, Tipo, Atributo, ListaAtributos, ListaMétodos}`
 
 
-T = {"interface", "struct", "implements", "def", "this", "for", "foreach", "in",
+Σ = `{"interface", "struct", "implements", "def", "this", "for", "foreach", "in",
      "if", "elif", "else", "while", "break", "continue", "return",
      "int", "float", "string", "bool", "tuple", "dict", "set", "void", "null",
      "(", ")", "{", "}", "[", "]", ",", ";", "=", "+", "-", "*", "/",
      "==", "!=", ">", "<", ">=", "<=", "identificador",
-     "literal_inteiro", "literal_real", "literal_texto", "literal_booleano"}
+     "literal_inteiro", "literal_real", "literal_texto", "literal_booleano"}`
 
 
-S = Programa
+S = `Programa`
 
-## 2. Gramática (versão inicial)
-Programa -> BlocoDeclarações BlocoComandos
+P = O conjunto de produções segue abaixo, no formato EBNF.
 
-BlocoDeclarações -> Declaração BlocoDeclarações | ε
+## Gramática em EBNF (Extended Backus–Naur Form)
+```enbf
+Programa = BlocoDeclarações BlocoComandos
 
-Declaração -> DeclaraçãoStruct | DeclaraçãoInterface | DeclaraçãoMétodo 
-            | DeclaraçãoAtributo | DeclaraçãoFunção | DeclaraçãoVariável
+BlocoDeclarações = { Declaração }
 
-DeclaraçãoStruct -> "struct" identificador ":\n" ListaAtributos ListaMétodos
+Declaração = DeclaraçãoStruct
+             | DeclaraçãoInterface
+             | DeclaraçãoMétodo
+             | DeclaraçãoAtributo
+             | DeclaraçãoFunção
+             | DeclaraçãoVariável
 
-ListaAtributos -> Atributo | Atributo "\n" ListaAtributos | ε 
+DeclaraçãoStruct = "struct" identificador ["implements" identificador] "\n" [ ListaAtributos ] [ ListaMétodos ]
 
-Atributo -> "\t" identificador | "\t" identificador ":" Tipo
+ListaAtributos = { Atributo "\n" } [ Atributo ]
 
-ListaMétodos -> DeclaraçãoMétodo | DeclaraçãoMétodo "\n" ListaMétodos | ε
+Atributo = "\t" identificador [ ":" Tipo ]
 
-DeclaraçãoMétodo -> "\t" DeclaraçãoFunção
+ListaMétodos = { DeclaraçãoMétodo "\n" } [ DeclaraçãoMétodo ]
 
-DeclaraçãoInterface -> "interface" identificador "{" ListaMétodos "}"
+DeclaraçãoMétodo = "\t" DeclaraçãoFunção
 
-DeclaraçãoFunção -> "def" identificador "(" ListaParametros ")" ":" BlocoComandos
+DeclaraçãoInterface = "interface" identificador "{" [ ListaMétodos ] "}"
 
-DeclaraçãoVariável -> identificador "=" Expressão | identificador ":" Tipo "=" Expressão
+DeclaraçãoFunção = "def" identificador "(" [ ListaParametros ] ")" ":" BlocoComandos
 
-Tipo -> "int" | "float" | "string" | "bool" | "tuple" | "dict" | "set" | "void" | "null"
+DeclaraçãoVariável = identificador [ ":" Tipo ] "=" Expressão
 
-BlocoComandos -> Comando BlocoComandos | ε
+Tipo = "int" | "float" | "string" | "bool"
+       | "tuple" | "dict" | "set" | "void" | "null"
 
-Comando -> ComandoCondicional | ComandoLaço | ComandoAtribuição | ComandoChamada | ComandoRetorno
+BlocoComandos = { Comando }
 
-ComandoRetorno -> "return" Expressão
+Comando = ComandoCondicional
+          | ComandoLaço
+          | ComandoAtribuição
+          | ComandoChamada
+          | ComandoRetorno
 
-ComandoCondicional -> "if" "(" Expressão ")" BlocoComandos ComandoElse
+ComandoRetorno = "return" [ Expressão ]
 
-ComandoElse -> "else" BlocoComandos | "elif" "(" Expressão ")" BlocoComandos ComandoElse | ε
+ComandoCondicional = "if" "(" Expressão ")" BlocoComandos [ ComandoElse ]
 
-ComandoLaço -> "for" "(" ComandoAtribuição "," Expressão "," ComandoAtribuição ")" BlocoComandos  
-             | "foreach" identificador "in" Expressão BlocoComandos  
-             | "while" "(" Expressão ")" BlocoComandos
+ComandoElse = "else" BlocoComandos
+              | "elif" "(" Expressão ")" BlocoComandos [ ComandoElse ]
 
-ComandoAtribuição -> identificador "=" Expressão
+ComandoLaço = "for" "(" ComandoAtribuição "," Expressão "," ComandoAtribuição ")" BlocoComandos
+              | "foreach" identificador "in" Expressão BlocoComandos
+              | "while" "(" Expressão ")" BlocoComandos
 
-ComandoChamada -> identificador "(" ListaArgumentos ")"
+ComandoAtribuição = identificador ( 
+    "="   | 
+    "+="  | 
+    "-="  | 
+    "*="  | 
+    "**=" | 
+    "/="  | 
+    "//=" |
+    "&="  |
+    "|="  |
+    "^="  |
+    "~="  |
+    ">>=" |
+    "<<=" 
+) Expressão
 
-Expressão -> ExpressãoAritmética | ExpressãoRelacional | ExpressãoLógica | literal | identificador
+ComandoChamada = identificador "(" [ ListaArgumentos ] ")"
 
-ExpressãoAritmética -> ExpressãoAritmética "+" Termo
-                      | ExpressãoAritmética "-" Termo
-                      | Termo
+Expressão = ExpressãoAritmética
+            | ExpressãoRelacional
+            | ExpressãoLógica
+            | literal
+            | identificador
 
-Termo -> Termo "*" Fator
-       | Termo "/" Fator
-       | Fator
+ExpressãoAritmética = Termo { ("+" | "-") Termo }
 
-Fator -> "(" Expressão ")" | identificador | literal
+Termo = Fator { ("*" | "/") Fator }
 
-ExpressãoRelacional -> ExpressãoAritmética ("==" | "!=" | ">" | "<" | ">=" | "<=") ExpressãoAritmética
+Fator = "(" Expressão ")" | identificador | literal
 
-ExpressãoLógica -> ExpressãoLógica "E" ExpressãoLógica
-                  | ExpressãoLógica "Ou" ExpressãoLógica
-                  | "Não" ExpressãoLógica
-                  | "(" ExpressãoLógica ")"
-                  | ExpressãoRelacional
+ExpressãoRelacional = ExpressãoAritmética ("==" | "!=" | ">" | "<" | ">=" | "<=") ExpressãoAritmética
+
+ExpressãoLógica = ExpressãoRelacional
                   | identificador
                   | literal
+                  | "not" ExpressãoLógica
+                  | "(" ExpressãoLógica ")"
+                  | ExpressãoLógica "and" ExpressãoLógica
+                  | ExpressãoLógica "or" ExpressãoLógica
 
-ListaParametros -> Tipo identificador ("," Tipo identificador)* | ε
+ListaParametros = { Tipo identificador "," } [ Tipo identificador ]
 
-ListaArgumentos -> Expressão ("," Expressão)* | ε
-
-## 3. Classificação na Hierarquia de Chomsky
-Tipo: 2 — Livre de Contexto (Context-Free Grammar, CFG).
-Justificativa:
-- Todas as regras possuem exatamente um não-terminal à esquerda (forma A → α),
-logo se enquadram em CFG.
-- O reconhecimento da linguagem requer uma pilha para gerenciar aninhamentos (por
-exemplo, if...end e while...end), algo natural para autômatos de pilha e fora
-do poder de autômatos finitos (não-regulares).
-- Restrições contextuais (ex.: declaração prévia de variáveis, concordância de tipos)
-serão tratadas na análise semântica posterior através de uma tabela de símbolos — não via gramática.
-- Portanto, a gramática é adequadamente classificada como Tipo 2.
-
-## 4. Exemplos de derivações
-### 4.1 Declaração de variável com inicialização
-``` 
-Programa → BlocoDeclarações BlocoComandos → DeclaraçãoVariável BlocoDeclarações BlocoComandos → Tipo identificador
+ListaArgumentos = { Expressão "," } [ Expressão ]
 ```
-
-### 4.2 Expressão aritmética com precedência
-```
-ExpressãoAritmética → Termo + Termo → Fator + Termo → identificador + (identificador * identificador)
-```
-
-### 4.3 Estrutura condicional com else
-```
-ComandoCondicional → if (a > b) { BlocoComandos } else { BlocoComandos }
-```
-
-### 4.4 foreach(loop)
-```
-ComandoLaço → foreach identificador in Expressão BlocoComandos
-```
-
-
-## 5. Ambiguidades potenciais e estratégias de resolução
-### 5.1 Dangling-else
-
-- Problema: associação ambígua do else.
-- Solução: else associa ao if mais próximo sem else.
-
-### 5.2 Precedência e associatividade
-- Operadores definidos em camadas (Fator → Termo → Arit → Rel →
-Lógica).
-- Associatividade natural:
-○ +, -, *, / → à esquerda.
-○ comparadores → não-associativos.
-
-### 5.3 Comparações encadeadas
-- a < b < c proibido diretamente.
-- Deve-se usar (a < b) and (b < c).
-
-### 5.4 Identificadores vs. palavras-chave
-- Regra: palavras-chave não podem ser identificadores.
