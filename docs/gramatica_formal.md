@@ -23,96 +23,80 @@ P = O conjunto de produções segue abaixo, no formato EBNF.
 
 ## Gramática em EBNF (Extended Backus–Naur Form)
 ```enbf
-Programa = BlocoDeclarações BlocoComandos
+Programa            = BlocoDeclarações BlocoComandos
 
-BlocoDeclarações = { Declaração }
+BlocoDeclarações    = { Declaração }
 
-Declaração = DeclaraçãoStruct
-             | DeclaraçãoInterface
-             | DeclaraçãoMétodo
-             | DeclaraçãoAtributo
-             | DeclaraçãoFunção
-             | DeclaraçãoVariável
+Declaração          = DeclaraçãoStruct
+                    | DeclaraçãoInterface
+                    | DeclaraçãoFunção
+                    | DeclaraçãoVariável
 
-DeclaraçãoStruct = "struct" identificador ["implements" identificador] "\n" [ ListaAtributos ] [ ListaMétodos ]
+DeclaraçãoStruct    = "struct" identificador [ "implements" identificador ] "{" ListaAtributos ListaMétodos "}"
 
-ListaAtributos = { Atributo "\n" } [ Atributo ]
+ListaAtributos      = { Atributo }
+Atributo            = identificador [ ":" Tipo ]
 
-Atributo = "\t" identificador [ ":" Tipo ]
-
-ListaMétodos = { DeclaraçãoMétodo "\n" } [ DeclaraçãoMétodo ]
-
-DeclaraçãoMétodo = "\t" DeclaraçãoFunção
+ListaMétodos        = { DeclaraçãoMétodo }
+DeclaraçãoMétodo    = DeclaraçãoFunção
 
 DeclaraçãoInterface = "interface" identificador "{" [ ListaMétodos ] "}"
 
-DeclaraçãoFunção = "def" identificador "(" [ ListaParametros ] ")" ":" BlocoComandos
+DeclaraçãoFunção    = "def" identificador "(" [ ListaParametros ] ")" ":" BlocoComandos
 
-DeclaraçãoVariável = identificador [ ":" Tipo ] "=" Expressão
+DeclaraçãoVariável  = identificador [ ":" Tipo ] "=" Expressão
 
-Tipo = "int" | "float" | "string" | "bool"
-       | "tuple" | "dict" | "set" | "void" | "null"
+Tipo                = "int" | "float" | "string" | "bool"
+                    | "tuple" | "dict" | "set" | "void" | "null"
 
-BlocoComandos = { Comando }
+BlocoComandos       = { Comando }
 
-Comando = ComandoCondicional
-          | ComandoLaço
-          | ComandoAtribuição
-          | ComandoChamada
-          | ComandoRetorno
+Comando             = ComandoCondicional
+                    | ComandoLaço
+                    | ComandoRetorno
+                    | ComandoIdent
 
-ComandoRetorno = "return" [ Expressão ]
+ComandoRetorno      = "return" [ Expressão ]
 
-ComandoCondicional = "if" "(" Expressão ")" BlocoComandos [ ComandoElse ]
+ComandoCondicional  = "if" "(" Expressão ")" BlocoComandos [ ComandoElse ]
+ComandoElse         = "else" BlocoComandos
+                    | "elif" "(" Expressão ")" BlocoComandos [ ComandoElse ]
 
-ComandoElse = "else" BlocoComandos
-              | "elif" "(" Expressão ")" BlocoComandos [ ComandoElse ]
+ComandoLaço         = "for" "(" ComandoAtribuição "," Expressão "," ComandoAtribuição ")" BlocoComandos
+                    | "foreach" identificador "in" Expressão BlocoComandos
+                    | "while" "(" Expressão ")" BlocoComandos
 
-ComandoLaço = "for" "(" ComandoAtribuição "," Expressão "," ComandoAtribuição ")" BlocoComandos
-              | "foreach" identificador "in" Expressão BlocoComandos
-              | "while" "(" Expressão ")" BlocoComandos
 
-ComandoAtribuição = identificador ( 
-    "="   | 
-    "+="  | 
-    "-="  | 
-    "*="  | 
-    "**=" | 
-    "/="  | 
-    "//=" |
-    "&="  |
-    "|="  |
-    "^="  |
-    "~="  |
-    ">>=" |
-    "<<=" 
-) Expressão
+ComandoIdent        = identificador Suffix
+Suffix              = "(" [ ListaArgumentos ] ")"
+                    | AssignOp Expressão                 
+                      Expressão
 
-ComandoChamada = identificador "(" [ ListaArgumentos ] ")"
+ComandoAtribuição   = identificador AssignOp Expressão
 
-Expressão = ExpressãoAritmética
-            | ExpressãoRelacional
-            | ExpressãoLógica
-            | literal
-            | identificador
+AssignOp            = "=" | "+=" | "-=" | "*=" | "**=" | "/=" | "//=" | "&=" | "|=" | "^=" | "~=" | ">>=" | "<<="
 
-ExpressãoAritmética = Termo { ("+" | "-") Termo }
+ListaParametros     = Tipo identificador { "," Tipo identificador } | ε
 
-Termo = Fator { ("*" | "/") Fator }
+ListaArgumentos     = Expressão { "," Expressão } | ε
 
-Fator = "(" Expressão ")" | identificador | literal
 
-ExpressãoRelacional = ExpressãoAritmética ("==" | "!=" | ">" | "<" | ">=" | "<=") ExpressãoAritmética
+Expressão           = LogicalOr
 
-ExpressãoLógica = ExpressãoRelacional
-                  | identificador
-                  | literal
-                  | "not" ExpressãoLógica
-                  | "(" ExpressãoLógica ")"
-                  | ExpressãoLógica "and" ExpressãoLógica
-                  | ExpressãoLógica "or" ExpressãoLógica
+LogicalOr           = LogicalAnd { "or" LogicalAnd }
 
-ListaParametros = { Tipo identificador "," } [ Tipo identificador ]
+LogicalAnd          = LogicalNot { "and" LogicalNot }
 
-ListaArgumentos = { Expressão "," } [ Expressão ]
-```
+LogicalNot          = "not" LogicalNot
+                    | RelationalOrPrimary
+
+RelationalOrPrimary = Arithmetic [ RelOp Arithmetic ]
+RelOp               = "==" | "!=" | ">" | "<" | ">=" | "<="
+
+Arithmetic          = Term { ("+" | "-") Term }
+
+Term                = Factor { ("*" | "/") Factor }
+
+Factor              = "(" Expressão ")"
+                    | identificador
+                    | literal
