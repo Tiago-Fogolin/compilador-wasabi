@@ -15,21 +15,57 @@ Lexer::Lexer() {
 }
 
 std::vector<TokenType> ordemPrioridade = {
-    TokenType::COMMENT,
-    TokenType::STRING_LITERAL,
-    TokenType::CHAR_LITERAL,
-    TokenType::KEYWORD,
+    TokenType::COMMENT,          // comentários sempre primeiro
+    TokenType::STRING_LITERAL,   // strings antes de char e identificador
+    TokenType::CHAR_LITERAL,     
+    TokenType::KEYWORD,          // palavras-chave antes de identificador
     TokenType::IDENTIFIER,
-    TokenType::SCIENTIFIC,
-    TokenType::FLOAT,
-    TokenType::INTEGER,
-    TokenType::BITWISE_SHIFT,
-    TokenType::LOGICAL,
-    TokenType::RELATIONAL,
+    TokenType::SCIENTIFIC,       // números com expoente
+    TokenType::FLOAT,             // float
+    TokenType::INTEGER,           // inteiro
+    TokenType::DOUBLE_STAR,       // operadores multi-caracter
+    TokenType::DOUBLE_SLASH,
+    TokenType::ASSIGN_POW,
+    TokenType::ASSIGN_FDIV,
+    TokenType::ASSIGN_SHR,
+    TokenType::ASSIGN_SHL,
+    TokenType::ASSIGN_ADD,
+    TokenType::ASSIGN_SUB,
+    TokenType::ASSIGN_MUL,
+    TokenType::ASSIGN_DIV,
+    TokenType::ASSIGN_AND,
+    TokenType::ASSIGN_OR,
+    TokenType::ASSIGN_XOR,
+    TokenType::ASSIGN_NOT,
     TokenType::ASSIGN,
-    TokenType::OPERATION,
-    TokenType::BITWISE,
-    TokenType::DELIMITER,
+    TokenType::EQ,
+    TokenType::NEQ,
+    TokenType::GTE,
+    TokenType::LTE,
+    TokenType::GT,
+    TokenType::LT,
+    TokenType::PLUS,
+    TokenType::MINUS,
+    TokenType::STAR,
+    TokenType::SLASH,
+    TokenType::AMP,
+    TokenType::PIPE,
+    TokenType::CARET,
+    TokenType::TILDE,
+    TokenType::RSHIFT,
+    TokenType::LSHIFT,
+    TokenType::AND,
+    TokenType::OR,
+    TokenType::NOT,
+    TokenType::PAREN_OPEN,
+    TokenType::PAREN_CLOSE,
+    TokenType::BRACE_OPEN,
+    TokenType::BRACE_CLOSE,
+    TokenType::BRACKET_OPEN,
+    TokenType::BRACKET_CLOSE,
+    TokenType::COMMA,
+    TokenType::SEMICOLON,
+    TokenType::COLON,
     TokenType::WHITESPACE
 };
 
@@ -109,7 +145,7 @@ std::vector<Token> Lexer::analisarTexto(std::string& bloco) {
 
         if (tipoFinal == TokenType::IDENTIFIER) {
             if (palavrasReservadas.count(token)) {
-                tipoFinal = TokenType::KEYWORD;
+                tipoFinal = stringToTokenType(token);
             }
         }
         

@@ -6,6 +6,7 @@
 #include <unordered_set>
 #include <algorithm>
 #include "include/lexer/Lexer.hpp"
+#include "include/parser/Parser.hpp"
 
 constexpr size_t BUFFER_SIZE = 4096;
 
@@ -60,7 +61,22 @@ int main(int argc, char* argv[]) {
         std::vector<Token> blocTokens = lexer.analisarTexto(resto);
         tokensAceitos.insert(tokensAceitos.end(), blocTokens.begin(), blocTokens.end());
     }
+
+    Parser parser(tokensAceitos);
     
+     try {
+        auto programa = parser.analisarPrograma();
+
+        if (programa) {
+            std::cout << "=== AST ===\n";
+            programa->imprimir(0);
+        } else {
+            std::cout << "Nenhum programa reconhecido.\n";
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "Erro ao analisar: " << e.what() << "\n";
+    }
+    /*
     for (const auto& token : tokensAceitos) {
         TokenType tipo = token.tipo;
         if(tipo == TokenType::WHITESPACE) continue;
@@ -68,6 +84,7 @@ int main(int argc, char* argv[]) {
         std::cout << "  " << token.valor << "\n";
         
     }
+    */
 
 
     return 0;

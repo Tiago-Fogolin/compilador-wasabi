@@ -9,7 +9,7 @@ struct Posicao {
     int coluna;
 };
 
-// ========== BASE ==========
+
 
 class NodoAST {
 public:
@@ -18,7 +18,6 @@ public:
     virtual void imprimir(int indent = 0) const = 0;
 };
 
-// ========== EXPRESSÕES ==========
 
 class NodoExpressao : public NodoAST {};
 
@@ -55,7 +54,7 @@ public:
     void imprimir(int indent = 0) const override;
 };
 
-// ========== DECLARAÇÕES ==========
+
 
 class NodoDeclaracao : public NodoAST {};
 
@@ -73,7 +72,7 @@ public:
 class DeclaracaoFuncao : public NodoDeclaracao {
 public:
     std::string nome;
-    std::vector<std::pair<std::string, std::string>> parametros; // tipo, nome
+    std::vector<std::pair<std::string, std::string>> parametros;
     std::string tipoRetorno;
     std::vector<std::shared_ptr<NodoAST>> corpo;
     DeclaracaoFuncao(std::string nome,
@@ -105,7 +104,7 @@ public:
     void imprimir(int indent = 0) const override;
 };
 
-// ========== COMANDOS ==========
+
 
 class NodoComando : public NodoAST {};
 
@@ -133,5 +132,113 @@ public:
     ComandoCondicional(std::shared_ptr<NodoExpressao> condicao,
                        std::vector<std::shared_ptr<NodoAST>> blocoIf,
                        std::vector<std::shared_ptr<NodoAST>> blocoElse);
+    void imprimir(int indent = 0) const override;
+};
+
+
+class NodoPrograma : public NodoAST {
+public:
+    std::vector<std::shared_ptr<NodoDeclaracao>> declaracoes;
+    std::vector<std::shared_ptr<NodoComando>> comandos;
+    NodoPrograma(std::vector<std::shared_ptr<NodoDeclaracao>> decls,
+                 std::vector<std::shared_ptr<NodoComando>> cmds);
+    void imprimir(int indent = 0) const override;
+};
+
+class ComandoIdent : public NodoComando {
+public:
+    std::string nome;
+    std::vector<std::shared_ptr<NodoExpressao>> argumentos;
+    std::string operadorAtribuicao;
+    std::shared_ptr<NodoExpressao> expressao;
+    ComandoIdent(std::string nome,
+                 std::vector<std::shared_ptr<NodoExpressao>> argumentos);
+    ComandoIdent(std::string nome,
+                 std::string operadorAtribuicao,
+                 std::shared_ptr<NodoExpressao> expressao);
+    void imprimir(int indent = 0) const override;
+};
+
+class ComandoDeclaracao : public NodoComando {
+public:
+    std::shared_ptr<NodoDeclaracao> declaracao;
+    ComandoDeclaracao(std::shared_ptr<NodoDeclaracao> declaracao);
+    void imprimir(int indent = 0) const override;
+};
+
+class ComandoLaco : public NodoComando {
+public:
+    enum class TipoLaco { FOR, FOREACH, WHILE };
+    TipoLaco tipo;
+    std::shared_ptr<NodoComando> inicializacao;
+    std::shared_ptr<NodoExpressao> condicao;
+    std::shared_ptr<NodoComando> incremento;
+    std::shared_ptr<NodoExpressao> expressaoForeach;
+    std::string identificadorForeach;
+    std::vector<std::shared_ptr<NodoAST>> corpo;
+    ComandoLaco(TipoLaco tipo,
+                std::shared_ptr<NodoComando> init,
+                std::shared_ptr<NodoExpressao> cond,
+                std::shared_ptr<NodoComando> incr,
+                std::vector<std::shared_ptr<NodoAST>> corpo);
+    ComandoLaco(TipoLaco tipo,
+                std::string identificador,
+                std::shared_ptr<NodoExpressao> expr,
+                std::vector<std::shared_ptr<NodoAST>> corpo);
+    void imprimir(int indent = 0) const override;
+};
+
+class ExpressaoLogica : public NodoExpressao {
+public:
+    std::string operador;
+    std::shared_ptr<NodoExpressao> esquerda;
+    std::shared_ptr<NodoExpressao> direita;
+    ExpressaoLogica(std::shared_ptr<NodoExpressao> esquerda,
+                    std::string operador,
+                    std::shared_ptr<NodoExpressao> direita);
+    void imprimir(int indent = 0) const override;
+};
+
+class ExpressaoRelacional : public NodoExpressao {
+public:
+    std::string operador;
+    std::shared_ptr<NodoExpressao> esquerda;
+    std::shared_ptr<NodoExpressao> direita;
+    ExpressaoRelacional(std::shared_ptr<NodoExpressao> esquerda,
+                        std::string operador,
+                        std::shared_ptr<NodoExpressao> direita);
+    void imprimir(int indent = 0) const override;
+};
+
+class ExpressaoChamada : public NodoExpressao {
+public:
+    std::string nome;
+    std::vector<std::shared_ptr<NodoExpressao>> argumentos;
+    ExpressaoChamada(std::string nome,
+                     std::vector<std::shared_ptr<NodoExpressao>> argumentos);
+    void imprimir(int indent = 0) const override;
+};
+
+class ExpressaoAgrupada : public NodoExpressao {
+public:
+    std::shared_ptr<NodoExpressao> expressao;
+    ExpressaoAgrupada(std::shared_ptr<NodoExpressao> expressao);
+    void imprimir(int indent = 0) const override;
+};
+
+// Expressão de Acesso a Membro (Ex: objeto.propriedade ou this.metodo())
+class ExpressaoAcessoMembro : public NodoExpressao {
+public:
+    std::shared_ptr<NodoExpressao> objeto;
+    std::string membro;
+    ExpressaoAcessoMembro(std::shared_ptr<NodoExpressao> objeto, std::string membro);
+    void imprimir(int indent = 0) const override;
+};
+
+// Expressão de Array Literal (Ex: [1, 2, "a"])
+class ExpressaoArrayLiteral : public NodoExpressao {
+public:
+    std::vector<std::shared_ptr<NodoExpressao>> elementos;
+    ExpressaoArrayLiteral(std::vector<std::shared_ptr<NodoExpressao>> elementos);
     void imprimir(int indent = 0) const override;
 };
