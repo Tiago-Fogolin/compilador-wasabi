@@ -30,7 +30,6 @@ void ExpressaoUnaria::imprimir(int i) const {
 // NOVOS NODOS DE EXPRESSÃO
 // ----------------------------------------------------------
 
-// ExpressaoAcessoMembro (Ex: objeto.membro)
 ExpressaoAcessoMembro::ExpressaoAcessoMembro(std::shared_ptr<NodoExpressao> objeto, std::string membro)
     : objeto(std::move(objeto)), membro(std::move(membro)) {}
 void ExpressaoAcessoMembro::imprimir(int i) const {
@@ -38,7 +37,7 @@ void ExpressaoAcessoMembro::imprimir(int i) const {
     objeto->imprimir(i+2);
 }
 
-// ExpressaoArrayLiteral (Ex: [1, 2, "a"])
+
 ExpressaoArrayLiteral::ExpressaoArrayLiteral(std::vector<std::shared_ptr<NodoExpressao>> elementos)
     : elementos(std::move(elementos)) {}
 void ExpressaoArrayLiteral::imprimir(int i) const {
@@ -48,7 +47,6 @@ void ExpressaoArrayLiteral::imprimir(int i) const {
     }
 }
 
-// ExpressaoChamada (Adicionado, pois foi referenciado no parser, se estiver em AstBase.hpp)
 ExpressaoChamada::ExpressaoChamada(std::string nome, std::vector<std::shared_ptr<NodoExpressao>> argumentos)
     : nome(std::move(nome)), argumentos(std::move(argumentos)) {}
 void ExpressaoChamada::imprimir(int i) const {
@@ -135,7 +133,6 @@ void ComandoDeclaracao::imprimir(int i) const {
     declaracao->imprimir(i+2);
 }
 
-// COMANDO IDENT (SEM ALTERAÇÃO)
 ComandoIdent::ComandoIdent(std::string n, std::vector<std::shared_ptr<NodoExpressao>> args)
     : nome(std::move(n)), argumentos(std::move(args)) {}
 ComandoIdent::ComandoIdent(std::string n, std::string op, std::shared_ptr<NodoExpressao> expr)
@@ -151,7 +148,6 @@ void ComandoIdent::imprimir(int indent) const {
     }
 }
 
-// COMANDO LACO (SEM ALTERAÇÃO)
 ComandoLaco::ComandoLaco(TipoLaco t, std::shared_ptr<NodoComando> init, std::shared_ptr<NodoExpressao> cond,
                          std::shared_ptr<NodoComando> incr, std::vector<std::shared_ptr<NodoAST>> corpo_)
     : tipo(t), inicializacao(std::move(init)), condicao(std::move(cond)),
@@ -175,7 +171,7 @@ void ComandoLaco::imprimir(int indent) const {
 }
 
 
-// NODO PROGRAMA (SEM ALTERAÇÃO)
+// NODO PROGRAMA
 NodoPrograma::NodoPrograma(std::vector<std::shared_ptr<NodoDeclaracao>> decls,
                            std::vector<std::shared_ptr<NodoComando>> cmds)
     : declaracoes(std::move(decls)), comandos(std::move(cmds)) {}

@@ -20,14 +20,14 @@ public:
     bool verificar(TokenType tipoEsperado);
     Token consumir(TokenType tipoEsperado);
 
-    std::shared_ptr<NodoAST> analisarPrograma();
+    std::shared_ptr<NodoPrograma> analisarPrograma();
 
     
 
-    std::vector<std::shared_ptr<NodoAST>> analisarBlocoComandos();
+    std::vector<std::shared_ptr<NodoAST>> analisarBlocoComandos(bool dentro_bloco);
     std::vector<std::shared_ptr<NodoDeclaracao>> analisarBlocoDeclaracoes();
 
-    std::shared_ptr<NodoComando> analisarComando();
+    std::shared_ptr<NodoComando> analisarComando(bool dentro_bloco = true);
     std::shared_ptr<NodoComando> analisarComandoCondicional();
     std::shared_ptr<NodoComando> analisarComandoLaco(); 
     std::shared_ptr<NodoComando> analisarComandoRetorno();

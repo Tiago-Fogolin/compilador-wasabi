@@ -3,7 +3,7 @@ INC_DIR = lib/include
 BUILD_DIR = build
 
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall -I$(INC_DIR)
+CXXFLAGS = -std=c++17 -Wall -g -I$(INC_DIR)
 
 ifeq ($(OS),Windows_NT)
     SHELL = C:/msys64/usr/bin/bash.exe

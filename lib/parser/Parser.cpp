@@ -54,25 +54,25 @@ Token Parser::consumir(TokenType tipoEsperado) {
 // PROGRAMA
 // ----------------------------------------------------------------------------------
 
-std::shared_ptr<NodoAST> Parser::analisarPrograma() {
+std::shared_ptr<NodoPrograma> Parser::analisarPrograma() {
+    // Declaracoes globais
     std::vector<std::shared_ptr<NodoDeclaracao>> declaracoes = analisarBlocoDeclaracoes();
-    std::vector<std::shared_ptr<NodoComando>> comandos;
 
+    std::vector<std::shared_ptr<NodoComando>> comandos;
     while (!fimDaEntrada() && !verificar(TokenType::END_OF_FILE)) {
-        auto cmd = analisarComando();
-        if (cmd) {
-            comandos.push_back(cmd);
-        }
+        auto cmd = analisarComando(false);
+        if (cmd) comandos.push_back(cmd);
     }
 
-    return std::make_shared<NodoPrograma>(declaracoes, comandos); 
+    return std::make_shared<NodoPrograma>(declaracoes, comandos);
 }
+
 
 // ----------------------------------------------------------------------------------
 // BLOCOS
 // ----------------------------------------------------------------------------------
 
-std::vector<std::shared_ptr<NodoAST>> Parser::analisarBlocoComandos() {
+std::vector<std::shared_ptr<NodoAST>> Parser::analisarBlocoComandos(bool dentro_bloco) {
     std::vector<std::shared_ptr<NodoAST>> comandosAST;
     
     while (!fimDaEntrada() &&
@@ -80,14 +80,13 @@ std::vector<std::shared_ptr<NodoAST>> Parser::analisarBlocoComandos() {
            !verificar(TokenType::KW_ELSE) &&
            !verificar(TokenType::END_OF_FILE)) {
         
-        auto cmd = analisarComando();
-        if (cmd) {
-            comandosAST.push_back(cmd); 
-        }
+        auto cmd = analisarComando(dentro_bloco);
+        if (cmd) comandosAST.push_back(cmd);
     }
 
-    return comandosAST; 
+    return comandosAST;
 }
+
 
 // ----------------------------------------------------------------------------------
 // COMANDOS
@@ -109,33 +108,51 @@ bool Parser::ehOperadorAtribuicao(TokenType tipo) {
            tipo == TokenType::ASSIGN_SHL;
 }
 
-std::shared_ptr<NodoComando> Parser::analisarComando() {
+std::shared_ptr<NodoComando> Parser::analisarComando(bool dentro_bloco) {
+    // if, for, while
     if (verificar(TokenType::KW_IF)) return analisarComandoCondicional();
-    if (verificar(TokenType::KW_FOR) || verificar(TokenType::KW_FOREACH) || verificar(TokenType::KW_WHILE))
+    if (verificar(TokenType::KW_FOR) || verificar(TokenType::KW_WHILE) || verificar(TokenType::KW_FOREACH))
         return analisarComandoLaco();
     if (verificar(TokenType::KW_RETURN)) return analisarComandoRetorno();
 
-    if (verificar(TokenType::IDENTIFIER)) {
-        // Prioridade 1: Declaração de variável com tipo (escopo local)
-        if (posicao_atual + 1 < tokens.size() && tokens[posicao_atual + 1].tipo == TokenType::COLON) {
-            auto decl = analisarDeclaracaoVariavel();
-            return std::make_shared<ComandoDeclaracao>(decl);
-        }
+    // Declaração de variável
+    if (verificar(TokenType::IDENTIFIER) &&
+        posicao_atual + 1 < tokens.size() &&
+        tokens[posicao_atual + 1].tipo == TokenType::COLON) {
         
-        // Prioridade 2: Atribuição (incluindo +=, -=, etc.) ou Chamada (ComandoIdent)
-        if (posicao_atual + 1 < tokens.size()) {
-             TokenType proximoTipo = tokens[posicao_atual + 1].tipo;
+        if (!dentro_bloco) {
+            std::cerr << "Erro: declaracao de variavel top-level inesperada apos bloco de declaracoes." << std::endl;
+            advance();
+            return nullptr;
+        }
 
-             if (ehOperadorAtribuicao(proximoTipo) || proximoTipo == TokenType::PAREN_OPEN) {
-                 return analisarComandoIdentOuAtribuicao();
-             }
+        auto decl = analisarDeclaracaoVariavel();
+        return std::make_shared<ComandoDeclaracao>(decl);
+    }
+
+    if (verificar(TokenType::IDENTIFIER)) {
+        Token id = consumir(TokenType::IDENTIFIER);
+
+        if (verificar(TokenType::PAREN_OPEN)) {
+            consumir(TokenType::PAREN_OPEN);
+            std::vector<std::shared_ptr<NodoExpressao>> args;
+            if (!verificar(TokenType::PAREN_CLOSE)) {
+                args.push_back(analisarExpressao());
+                while (verificar(TokenType::COMMA)) {
+                    consumir(TokenType::COMMA);
+                    args.push_back(analisarExpressao());
+                }
+            }
+            consumir(TokenType::PAREN_CLOSE);
+            return std::make_shared<ComandoIdent>(id.valor, args);
+        } 
+        else if (posicao_atual < tokens.size() && ehOperadorAtribuicao(peek().tipo)) {
+            return analisarComandoAtribuicao(id);
         }
     }
 
-    // Erro e recuperação:
-    std::cerr << "Comando inesperado: " 
-              << " em linha " << peek().linha << std::endl;
-    advance(); // CRÍTICO: Avança o token para evitar loop infinito
+    std::cerr << "Comando inesperado em linha " << peek().linha << std::endl;
+    advance();
     return nullptr;
 }
 
@@ -147,18 +164,20 @@ std::shared_ptr<NodoComando> Parser::analisarComandoCondicional() {
     consumir(TokenType::PAREN_OPEN);
     auto condicao = analisarExpressao();
     consumir(TokenType::PAREN_CLOSE);
-    
-    consumir(TokenType::BRACE_OPEN); 
-    std::vector<std::shared_ptr<NodoAST>> blocoIf = analisarBlocoComandos(); 
+
+    consumir(TokenType::BRACE_OPEN);
+    // Passa dentro_bloco=true para declarar ComandoDeclaracao dentro do if
+    std::vector<std::shared_ptr<NodoAST>> blocoIf = analisarBlocoComandos(true); 
     consumir(TokenType::BRACE_CLOSE);
 
     std::vector<std::shared_ptr<NodoAST>> blocoElse;
     if (verificar(TokenType::KW_ELSE)) {
         blocoElse = analisarComandoElse(); 
     }
-    
+
     return std::make_shared<ComandoCondicional>(condicao, blocoIf, blocoElse);
 }
+
 
 std::shared_ptr<NodoComando> Parser::analisarComandoLaco() {
     TokenType tipoKw = peek().tipo;
@@ -166,16 +185,16 @@ std::shared_ptr<NodoComando> Parser::analisarComandoLaco() {
 
     // 3. LAÇO FOREACH
     if (tipoKw == TokenType::KW_FOREACH) {
-        consumir(TokenType::PAREN_OPEN); // Consome '('
+        consumir(TokenType::PAREN_OPEN);
 
         Token var_nome = consumir(TokenType::IDENTIFIER); 
         consumir(TokenType::KW_IN);
         auto expr = analisarExpressao(); 
         
-        consumir(TokenType::PAREN_CLOSE); // Consome ')'
+        consumir(TokenType::PAREN_CLOSE);
 
         consumir(TokenType::BRACE_OPEN); 
-        std::vector<std::shared_ptr<NodoAST>> corpoAST = analisarBlocoComandos();
+        std::vector<std::shared_ptr<NodoAST>> corpoAST = analisarBlocoComandos(true);
         consumir(TokenType::BRACE_CLOSE);
         
         return std::make_shared<ComandoLaco>(ComandoLaco::TipoLaco::FOREACH, var_nome.valor, expr, corpoAST);
@@ -188,10 +207,9 @@ std::shared_ptr<NodoComando> Parser::analisarComandoLaco() {
         consumir(TokenType::PAREN_CLOSE);
 
         consumir(TokenType::BRACE_OPEN);
-        std::vector<std::shared_ptr<NodoAST>> corpoAST = analisarBlocoComandos();
+        std::vector<std::shared_ptr<NodoAST>> corpoAST = analisarBlocoComandos(true);
         consumir(TokenType::BRACE_CLOSE);
 
-        // Assumindo um construtor de 5 argumentos para FOR/WHILE
         return std::make_shared<ComandoLaco>(
             ComandoLaco::TipoLaco::WHILE, 
             nullptr, 
@@ -223,7 +241,7 @@ std::shared_ptr<NodoComando> Parser::analisarComandoLaco() {
         consumir(TokenType::PAREN_CLOSE);
         
         consumir(TokenType::BRACE_OPEN);
-        std::vector<std::shared_ptr<NodoAST>> corpoAST = analisarBlocoComandos();
+        std::vector<std::shared_ptr<NodoAST>> corpoAST = analisarBlocoComandos(true);
         consumir(TokenType::BRACE_CLOSE);
         
         return std::make_shared<ComandoLaco>(
@@ -248,7 +266,6 @@ std::shared_ptr<NodoComando> Parser::analisarComandoIdentOuAtribuicao() {
     Token id = consumir(TokenType::IDENTIFIER);
     
     if (verificar(TokenType::PAREN_OPEN)) {
-        // É uma Chamada (Ex: funcao(args))
         consumir(TokenType::PAREN_OPEN);
         std::vector<std::shared_ptr<NodoExpressao>> args;
         if (!verificar(TokenType::PAREN_CLOSE)) {
@@ -266,7 +283,7 @@ std::shared_ptr<NodoComando> Parser::analisarComandoIdentOuAtribuicao() {
     return analisarComandoAtribuicao(id); 
 }
 
-// ** FUNÇÃO CRÍTICA REFATORADA (Atribuição) **
+
 std::shared_ptr<ComandoAtribuicao> Parser::analisarComandoAtribuicao(Token l_value_token) {
     Token op = advance(); 
     auto expr = analisarExpressao();
@@ -277,7 +294,7 @@ std::shared_ptr<ComandoAtribuicao> Parser::analisarComandoAtribuicao(Token l_val
 std::vector<std::shared_ptr<NodoAST>> Parser::analisarComandoElse() {
     consumir(TokenType::KW_ELSE);
     
-    if (verificar(TokenType::KW_IF)) { // else if
+    if (verificar(TokenType::KW_IF)) {
         auto condicional = analisarComandoCondicional();
         std::vector<std::shared_ptr<NodoAST>> elseIfWrapper;
         elseIfWrapper.push_back(condicional); 
@@ -285,7 +302,7 @@ std::vector<std::shared_ptr<NodoAST>> Parser::analisarComandoElse() {
     }
     
     consumir(TokenType::BRACE_OPEN);
-    std::vector<std::shared_ptr<NodoAST>> blocoElse = analisarBlocoComandos();
+    std::vector<std::shared_ptr<NodoAST>> blocoElse = analisarBlocoComandos(true);
     consumir(TokenType::BRACE_CLOSE);
 
     return blocoElse;
@@ -296,32 +313,42 @@ std::vector<std::shared_ptr<NodoAST>> Parser::analisarComandoElse() {
 // DECLARAÇÕES
 // ----------------------------------------------------------------------------------
 
-// ** FUNÇÃO CRÍTICA REFATORADA (Transição Global) **
 std::vector<std::shared_ptr<NodoDeclaracao>> Parser::analisarBlocoDeclaracoes() {
     std::vector<std::shared_ptr<NodoDeclaracao>> declaracoes;
+
     while (!fimDaEntrada()) {
-        
-        // 1. Declarações de topo de nível
-        if (verificar(TokenType::KW_STRUCT) || verificar(TokenType::KW_INTERFACE) || verificar(TokenType::KW_DEF)) {
-            declaracoes.push_back(analisarDeclaracao());
-            continue;
-        }
 
-        // 2. Declaração Variável Global explícita (Ex: lado: float = 4.5)
-        if (verificar(TokenType::IDENTIFIER) &&
-            posicao_atual + 1 < tokens.size() && tokens[posicao_atual + 1].tipo == TokenType::COLON) {
+        if (verificar(TokenType::KW_STRUCT) || 
+            verificar(TokenType::KW_INTERFACE) || 
+            verificar(TokenType::KW_DEF)) {
             
-            declaracoes.push_back(analisarDeclaracaoVariavel());
+            auto decl = analisarDeclaracao();
+            if (decl) declaracoes.push_back(decl);
             continue;
         }
 
-        // 3. INÍCIO DOS COMANDOS GLOBAIS
-        if (verificar(TokenType::IDENTIFIER) || verificar(TokenType::KW_IF) || verificar(TokenType::KW_WHILE) || verificar(TokenType::KW_FOREACH) || verificar(TokenType::KW_FOR)) {
-            break; 
+        // Declaração de variável
+        if (verificar(TokenType::IDENTIFIER) &&
+            posicao_atual + 1 < tokens.size() &&
+            tokens[posicao_atual + 1].tipo == TokenType::COLON) {
+            
+            auto declVar = analisarDeclaracaoVariavel();
+            if (declVar) declaracoes.push_back(declVar);
+
+            continue;
         }
 
-        break; 
+        if (verificar(TokenType::IDENTIFIER) || 
+            verificar(TokenType::KW_IF) || 
+            verificar(TokenType::KW_WHILE) || 
+            verificar(TokenType::KW_FOREACH) || 
+            verificar(TokenType::KW_FOR)) {
+            break;
+        }
+
+        break;
     }
+
     return declaracoes;
 }
 
@@ -332,15 +359,17 @@ std::shared_ptr<DeclaracaoVariavel> Parser::analisarDeclaracaoVariavel() {
 
     if (verificar(TokenType::COLON)) {
         consumir(TokenType::COLON);
-        Token tipoToken = advance(); 
+
+        Token tipoToken = consumir(peek().tipo);
         tipo = tipoToken.valor;
     }
+
 
     if (verificar(TokenType::ASSIGN)) {
         consumir(TokenType::ASSIGN);
         inicializador = analisarExpressao();
-    } 
-    
+    }
+
     return std::make_shared<DeclaracaoVariavel>(
         nome.valor,
         tipo.has_value() ? tipo.value() : "",
@@ -352,7 +381,6 @@ std::shared_ptr<NodoDeclaracao> Parser::analisarDeclaracao() {
     if (verificar(TokenType::KW_INTERFACE)) {
         consumir(TokenType::KW_INTERFACE);
         Token nome = consumir(TokenType::IDENTIFIER);
-        // Consumir(TokenType::COLON); // Removido se não faz parte da sintaxe
         consumir(TokenType::BRACE_OPEN);
         std::vector<std::shared_ptr<DeclaracaoFuncao>> metodos;
         while (verificar(TokenType::KW_DEF)) {
@@ -369,7 +397,7 @@ std::shared_ptr<NodoDeclaracao> Parser::analisarDeclaracao() {
         if (verificar(TokenType::KW_IMPLEMENTS)) { 
             consumir(TokenType::KW_IMPLEMENTS);
             implementa = consumir(TokenType::IDENTIFIER).valor;
-            // Consumir(TokenType::COLON); // Removido se não faz parte da sintaxe
+
         }
 
         consumir(TokenType::BRACE_OPEN);
@@ -393,7 +421,7 @@ std::shared_ptr<NodoDeclaracao> Parser::analisarDeclaracao() {
         return analisarDeclaracaoFuncao();
     }
     
-    std::cerr << "Erro: tipo de declaração inesperado: " /* << tokenTypeToString(peek().tipo) */ << std::endl;
+    std::cerr << "Erro: tipo de declaração inesperado: "  << tokenTypeToString(peek().tipo)  << std::endl;
     advance();
     return nullptr;
 }
@@ -403,16 +431,15 @@ std::shared_ptr<DeclaracaoFuncao> Parser::analisarDeclaracaoFuncao() {
     Token nome = consumir(TokenType::IDENTIFIER);
     
     consumir(TokenType::PAREN_OPEN);
-    // ... Analisar parâmetros ...
+    
     consumir(TokenType::PAREN_CLOSE);
     
     if (verificar(TokenType::COLON)) {
         consumir(TokenType::COLON);
-        // ... Analisar tipo de retorno ...
     }
 
     consumir(TokenType::BRACE_OPEN);
-    std::vector<std::shared_ptr<NodoAST>> corpo = analisarBlocoComandos(); 
+    std::vector<std::shared_ptr<NodoAST>> corpo = analisarBlocoComandos(true); 
     consumir(TokenType::BRACE_CLOSE);
 
     return std::make_shared<DeclaracaoFuncao>(nome.valor, std::vector<std::pair<std::string, std::string>>(), "", corpo);
@@ -461,10 +488,10 @@ std::shared_ptr<NodoExpressao> Parser::analisarExpressaoBinaria(int prec_min) {
     return esquerda;
 }
 
-// ** FUNÇÃO CRÍTICA COMPLETA **
+
 std::shared_ptr<NodoExpressao> Parser::analisarFator() {
     std::shared_ptr<NodoExpressao> expr;
-    Token id_token; // Para armazenar o token IDENTIFIER original
+    Token id_token; 
 
     if (verificar(TokenType::INTEGER) || verificar(TokenType::FLOAT) ||
         verificar(TokenType::STRING_LITERAL) || verificar(TokenType::CHAR_LITERAL)) {
@@ -474,13 +501,13 @@ std::shared_ptr<NodoExpressao> Parser::analisarFator() {
         Token kw = advance();
         expr = std::make_shared<ExpressaoIdentificador>(kw.valor); 
     } else if (verificar(TokenType::IDENTIFIER)) {
-        id_token = advance(); // Armazena o token ID
+        id_token = advance();
         expr = std::make_shared<ExpressaoIdentificador>(id_token.valor);
     } else if (verificar(TokenType::PAREN_OPEN)) {
         advance();
         expr = analisarExpressao();
         consumir(TokenType::PAREN_CLOSE);
-    } else if (verificar(TokenType::BRACKET_OPEN)) { // Array literal
+    } else if (verificar(TokenType::BRACKET_OPEN)) {
         consumir(TokenType::BRACKET_OPEN);
         std::vector<std::shared_ptr<NodoExpressao>> elementos;
         if (!verificar(TokenType::BRACKET_CLOSE)) {
@@ -502,7 +529,6 @@ std::shared_ptr<NodoExpressao> Parser::analisarFator() {
         return nullptr;
     }
 
-    // Pós-análise: Chamadas de função/construtor e Acesso a Membro (dot-access)
     while (verificar(TokenType::DOT) || verificar(TokenType::PAREN_OPEN)) {
         if (verificar(TokenType::DOT)) {
             consumir(TokenType::DOT);
@@ -510,8 +536,7 @@ std::shared_ptr<NodoExpressao> Parser::analisarFator() {
             expr = std::make_shared<ExpressaoAcessoMembro>(expr, membro.valor);
         } else if (verificar(TokenType::PAREN_OPEN)) {
             
-            // Verifica se o 'expr' atual é o nome da função (Identificador ou AcessoMembro)
-            // Caso contrário, (e.g., (1+2)(3) - que não é permitido) quebra.
+
             if (!std::dynamic_pointer_cast<ExpressaoIdentificador>(expr) && 
                 !std::dynamic_pointer_cast<ExpressaoAcessoMembro>(expr)) {
                 break;
@@ -529,20 +554,12 @@ std::shared_ptr<NodoExpressao> Parser::analisarFator() {
             }
             consumir(TokenType::PAREN_CLOSE);
             
-            // O nome da chamada é o nome do identificador (se for ExpressaoIdentificador)
             std::string nome_chamada;
             if (auto id_expr = std::dynamic_pointer_cast<ExpressaoIdentificador>(expr)) {
                 nome_chamada = id_expr->nome;
             } else if (auto membro_expr = std::dynamic_pointer_cast<ExpressaoAcessoMembro>(expr)) {
-                // Se for objeto.metodo(), o nome da chamada é toda a ExpressaoAcessoMembro
-                // Neste caso, precisamos de um Nodo específico para ExpressaoChamadaMembro,
-                // mas vamos reutilizar ExpressaoChamada passando a Expressao original como 'nome'
-                // para simplificar a AST.
-                // Isso é um HACK na AST, idealmente ExpressaoChamada precisaria de refactoring.
-                // Para manter o código compilável, usaremos o nome original do ID (se existir)
                 nome_chamada = id_token.valor;
             } else {
-                 // Deve ser tratado no seu design AST/Visitor
                  nome_chamada = "Erro_Chamada_Expressao_Complexa"; 
             }
             
