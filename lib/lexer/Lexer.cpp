@@ -17,7 +17,7 @@ Lexer::Lexer() {
 std::vector<TokenType> ordemPrioridade = {
     TokenType::COMMENT,          // comentários sempre primeiro
     TokenType::STRING_LITERAL,   // strings antes de char e identificador
-    TokenType::CHAR_LITERAL,     
+    TokenType::CHAR_LITERAL,
     TokenType::KEYWORD,          // palavras-chave antes de identificador
     TokenType::IDENTIFIER,
     TokenType::SCIENTIFIC,       // números com expoente
@@ -73,7 +73,7 @@ std::vector<Token> Lexer::analisarTexto(std::string& bloco) {
     std::string texto = bloco;
     std::vector<Token> tokensAceitos;
     AutomatoLexer automato;
-    
+
 
     size_t i = 0;
     size_t linha = 1;
@@ -99,7 +99,7 @@ std::vector<Token> Lexer::analisarTexto(std::string& bloco) {
 
             if (automato.estadosFinais.count(estadoAtual)) {
                 ultimoEstadoFinal = estadoAtual;
-                
+
                 std::pair<int,TokenType> posicaoTipo;
 
                 posicaoTipo.first = j;
@@ -148,7 +148,7 @@ std::vector<Token> Lexer::analisarTexto(std::string& bloco) {
                 tipoFinal = stringToTokenType(token);
             }
         }
-        
+
         if (tipoFinal != TokenType::WHITESPACE && tipoFinal != TokenType::COMMENT) {
             Token tokenStruct;
             tokenStruct.tipo = tipoFinal;
@@ -165,10 +165,15 @@ std::vector<Token> Lexer::analisarTexto(std::string& bloco) {
             }
         }
 
-        i = ultimoPosFinal + 1; 
+        i = ultimoPosFinal + 1;
     }
 
+    Token eof;
+
+    eof.tipo = TokenType::END_OF_FILE;
+    eof.valor = "";
+    eof.linha = linha;
+    tokensAceitos.push_back(eof);
 
     return tokensAceitos;
 }
-

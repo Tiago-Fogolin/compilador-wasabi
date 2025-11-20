@@ -9,6 +9,7 @@
 class TabelaSimbolos {
 private:
     std::vector<std::unordered_map<std::string, Simbolo>> escopos;
+    std::unordered_map<std::string, SimboloStruct> structs;
 
 public:
     TabelaSimbolos();
@@ -18,10 +19,14 @@ public:
     void entrarEscopo();
     void sairEscopo();
 
-    bool declarar(const std::string& nome, 
-                  const std::string& tipo, 
+    bool declarar(const std::string& nome,
+                  const std::string& tipo,
                   int linha,
                   bool inicializado = false);
+
+    void registrarStruct(const SimboloStruct& s);
+
+    SimboloStruct* buscarStruct(const std::string& nome);
 
     Simbolo* buscar(const std::string& nome);
     Simbolo* buscarEscopoAtual(const std::string& nome);

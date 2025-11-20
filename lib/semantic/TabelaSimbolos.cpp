@@ -21,7 +21,7 @@ void TabelaSimbolos::sairEscopo() {
     auto& escopoAtual = escopos.back();
     for (const auto& [nome, simbolo] : escopoAtual) {
         if (!simbolo.utilizado) {
-            std::cout << "Aviso: Variável " << nome 
+            std::cout << "Aviso: Variavel " << nome
                       << " declarada na linha " << simbolo.linha
                       << " nunca foi utilizada\n";
         }
@@ -33,15 +33,25 @@ void TabelaSimbolos::sairEscopo() {
 bool TabelaSimbolos::declarar(const std::string& nome,
                               const std::string& tipo,
                               int linha,
-                              bool inicializado) 
+                              bool inicializado)
 {
     auto& atual = escopos.back();
-    
+
     if (atual.count(nome) > 0)
         return false;
 
     atual.emplace(nome, Simbolo(nome, tipo, linha, inicializado));
     return true;
+}
+
+void TabelaSimbolos::registrarStruct(const SimboloStruct& s) {
+    structs[s.nome] = s;
+}
+
+SimboloStruct* TabelaSimbolos::buscarStruct(const std::string& nome) {
+    auto it = structs.find(nome);
+    if (it == structs.end()) return nullptr;
+    return &it->second;
 }
 
 Simbolo* TabelaSimbolos::buscar(const std::string& nome) {
@@ -92,9 +102,9 @@ std::string TabelaSimbolos::obterTipo(const std::string& nome) const {
 }
 
 void TabelaSimbolos::imprimir() const {
-    std::cout << "\n=== Tabela de Símbolos ===\n";
+    std::cout << "\n=== Tabela de Simbolos ===\n";
     for (size_t i = 0; i < escopos.size(); i++) {
-        std::cout << "Escopo nível " << i << ":\n";
+        std::cout << "Escopo nivel " << i << ":\n";
         for (const auto& [nome, simbolo] : escopos[i]) {
             std::cout << "  " << simbolo.toString() << "\n";
         }

@@ -6,8 +6,8 @@
 // ==========================================================
 // EXPRESSÕES
 // ==========================================================
-ExpressaoLiteral::ExpressaoLiteral(std::string valor): valor(std::move(valor)) {}
-void ExpressaoLiteral::imprimir(int indent) const { std::cout << IND(indent) << "Literal(" << valor << ")\n"; }
+ExpressaoLiteral::ExpressaoLiteral(std::string valor, std::string tipo): valor(std::move(valor)), tipo(std::move(tipo)) {}
+void ExpressaoLiteral::imprimir(int indent) const { std::cout << IND(indent) << "Literal(" << valor << " : " << tipo << ")\n"; }
 
 ExpressaoIdentificador::ExpressaoIdentificador(std::string nome): nome(std::move(nome)) {}
 void ExpressaoIdentificador::imprimir(int indent) const { std::cout << IND(indent) << "Ident(" << nome << ")\n"; }
@@ -73,17 +73,55 @@ DeclaracaoFuncao::DeclaracaoFuncao(std::string n, std::vector<std::pair<std::str
 : nome(std::move(n)), parametros(std::move(p)), tipoRetorno(std::move(r)), corpo(std::move(c)) {}
 void DeclaracaoFuncao::imprimir(int i) const {
     std::cout << IND(i) << "Func(" << nome << ")\n";
-    // Nota: O método imprimir de FuncDecl deve listar os parâmetros e o corpo.
-    // O seu código apenas lista o corpo, o que pode ser bom para economizar espaço na saída.
-    for (auto& s : corpo) s->imprimir(i+2);
+
+    if (!parametros.empty()) {
+        std::cout << IND(i + 2) << "Parametros:\n";
+        for (const auto& p : parametros) {
+            if (p.second.empty())
+                std::cout << IND(i + 4) << p.first << "\n";
+            else
+                std::cout << IND(i + 4) << p.first << " : " << p.second << "\n";
+        }
+    } else {
+        std::cout << IND(i + 2) << "Parametros: (nenhum)\n";
+    }
+
+    // Tipo de retorno
+    if (!tipoRetorno.empty())
+        std::cout << IND(i + 2) << "Retorno: " << tipoRetorno << "\n";
+
+    // Corpo
+    std::cout << IND(i + 2) << "Corpo:\n";
+    for (auto& s : corpo)
+        s->imprimir(i + 4);
 }
 
-DeclaracaoStruct::DeclaracaoStruct(std::string n, std::string imp, std::vector<std::shared_ptr<NodoDeclaracao>> a, std::vector<std::shared_ptr<DeclaracaoFuncao>> m)
+DeclaracaoStruct::DeclaracaoStruct(std::string n, std::vector<std::string> imp, std::vector<std::shared_ptr<NodoDeclaracao>> a, std::vector<std::shared_ptr<DeclaracaoFuncao>> m)
 : nome(std::move(n)), implementa(std::move(imp)), atributos(std::move(a)), metodos(std::move(m)) {}
 void DeclaracaoStruct::imprimir(int i) const {
-    std::cout << IND(i) << "Struct(" << nome << (implementa.empty() ? "" : (" implements " + implementa)) << ")\n";
-    if(!atributos.empty()) { std::cout << IND(i+2) << "Atributos:\n"; for (auto& a : atributos) a->imprimir(i+4); }
-    if(!metodos.empty()) { std::cout << IND(i+2) << "Metodos:\n"; for (auto& m : metodos) m->imprimir(i+4); }
+    std::string impl;
+
+    if (!implementa.empty()) {
+        impl = " implements ";
+        for (size_t k = 0; k < implementa.size(); k++) {
+            impl += implementa[k];
+            if (k + 1 < implementa.size()) impl += ", ";
+        }
+    }
+
+    std::cout << IND(i) << "Struct(" << nome << impl << ")\n";
+
+    if (!atributos.empty()) {
+        std::cout << IND(i+2) << "Atributos:\n";
+        for (auto& a : atributos)
+            a->imprimir(i+4);
+    }
+
+    if (!metodos.empty()) {
+        std::cout << IND(i+2) << "Metodos:\n";
+        for (auto& m : metodos)
+            m->imprimir(i+4);
+    }
 }
 
 DeclaracaoInterface::DeclaracaoInterface(std::string n, std::vector<std::shared_ptr<DeclaracaoFuncao>> m)
@@ -161,7 +199,7 @@ void ComandoLaco::imprimir(int indent) const {
     if (tipo == TipoLaco::FOR) tipoStr = "FOR";
     else if (tipo == TipoLaco::FOREACH) tipoStr = "FOREACH (" + identificadorForeach + ")";
     else tipoStr = "WHILE";
-    
+
     std::cout << IND(indent) << "Laco(" << tipoStr << ")\n";
     if (inicializacao) { std::cout << IND(indent+2) << "Init:\n"; inicializacao->imprimir(indent+4); }
     if (condicao) { std::cout << IND(indent+2) << "Cond:\n"; condicao->imprimir(indent+4); }
@@ -192,14 +230,14 @@ ExpressaoRelacional::ExpressaoRelacional(std::shared_ptr<NodoExpressao> esquerda
                                          std::shared_ptr<NodoExpressao> direita)
     : operador(std::move(operador)),
       esquerda(std::move(esquerda)),
-      direita(std::move(direita)) 
+      direita(std::move(direita))
 {
 }
 
 
 void ExpressaoRelacional::imprimir(int indent) const {
     std::cout << IND(indent) << "ExpressaoRelacional: (" << operador << ")\n";
-    
+
     std::cout << IND(indent + 2) << "Esquerda:\n";
 
     if (esquerda) {

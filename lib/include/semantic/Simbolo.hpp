@@ -2,6 +2,7 @@
 #define SIMBOLO_HPP
 
 #include <string>
+#include <parser/ast/AstBase.hpp>
 
 class Simbolo {
 public:
@@ -20,4 +21,13 @@ public:
     std::string toString() const;
 };
 
+struct SimboloStruct {
+    std::string nome;
+    std::shared_ptr<DeclaracaoStruct> decl;
+    std::vector<std::tuple<std::string, std::string, bool>> atributos;
+    std::vector<std::shared_ptr<DeclaracaoFuncao>> metodos;
+    std::vector<std::string> implements;
+    bool eInterface = false;
+    int linha = 0;
+};
 #endif

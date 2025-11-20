@@ -24,7 +24,8 @@ class NodoExpressao : public NodoAST {};
 class ExpressaoLiteral : public NodoExpressao {
 public:
     std::string valor;
-    ExpressaoLiteral(std::string valor);
+    std::string tipo;
+    ExpressaoLiteral(std::string valor, std::string tipo);
     void imprimir(int indent = 0) const override;
 };
 
@@ -85,11 +86,11 @@ public:
 class DeclaracaoStruct : public NodoDeclaracao {
 public:
     std::string nome;
-    std::string implementa;
+    std::vector<std::string> implementa;
     std::vector<std::shared_ptr<NodoDeclaracao>> atributos;
     std::vector<std::shared_ptr<DeclaracaoFuncao>> metodos;
     DeclaracaoStruct(std::string nome,
-                     std::string implementa,
+                     std::vector<std::string> implementa,
                      std::vector<std::shared_ptr<NodoDeclaracao>> atributos,
                      std::vector<std::shared_ptr<DeclaracaoFuncao>> metodos);
     void imprimir(int indent = 0) const override;
