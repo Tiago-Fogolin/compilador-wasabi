@@ -9,8 +9,9 @@
 Lexer::Lexer() {
     this->palavrasReservadas = {
         "interface","struct","implements","def","this","for","foreach","in",
-        "if","elif","else","while","break","continue","return",
-        "int","float","string","bool","tuple","dict","set","void","null"
+        "if","else","while","break","continue","return",
+        "int","float","string","bool","tuple","dict","set","void","null",
+        "true","false"
     };
 }
 

@@ -29,7 +29,7 @@ FIRST(ComandoRetorno) = { "return" }
 
 FIRST(ComandoCondicional) = { "if" }
 
-FIRST(ComandoElse) = { "else", "elif" }
+FIRST(ComandoElse) = { "else" }
 
 FIRST(ComandoLaço) = { "for", "foreach", "while" }
 
@@ -79,21 +79,21 @@ FOLLOW(DeclaraçãoVariável) = { struct, interface, def, identificador, if, for
 
 FOLLOW(Tipo) = { identificador, ")", "=", "," }
 
-FOLLOW(BlocoComandos) = { else, elif, $, "}" }
+FOLLOW(BlocoComandos) = { else, $, "}" }
 
-FOLLOW(Comando) = { if, for, foreach, while, return, identificador, else, elif, $, "}" }
+FOLLOW(Comando) = { if, for, foreach, while, return, identificador, else, $, "}" }
 
-FOLLOW(ComandoCondicional) = { if, for, foreach, while, return, identificador, else, elif, $, "}" }
+FOLLOW(ComandoCondicional) = { if, for, foreach, while, return, identificador, else, $, "}" }
 
-FOLLOW(ComandoLaço) = { if, for, foreach, while, return, identificador, else, elif, $, "}" }
+FOLLOW(ComandoLaço) = { if, for, foreach, while, return, identificador, else, $, "}" }
 
-FOLLOW(ComandoAtribuição) = { ",", ")", if, for, foreach, while, return, identificador, else, elif, $, "}" }
+FOLLOW(ComandoAtribuição) = { ",", ")", if, for, foreach, while, return, identificador, else, $, "}" }
 
-FOLLOW(ComandoChamada) = { if, for, foreach, while, return, identificador, else, elif, $, "}" }
+FOLLOW(ComandoChamada) = { if, for, foreach, while, return, identificador, else, $, "}" }
 
-FOLLOW(ComandoRetorno) = { if, for, foreach, while, return, identificador, else, elif, $, "}" }
+FOLLOW(ComandoRetorno) = { if, for, foreach, while, return, identificador, else, $, "}" }
 
-FOLLOW(Expressão) = { ",", ")", "}", "+", "-", "*", "/", "==", "!=", ">", "<", ">=", "<=", "and", "or", if, for, foreach, while, return, identificador, else, elif, $, ";" }
+FOLLOW(Expressão) = { ",", ")", "}", "+", "-", "*", "/", "==", "!=", ">", "<", ">=", "<=", "and", "or", if, for, foreach, while, return, identificador, else, $, ";" }
 
 FOLLOW(Fator) = { "*", "/", "+", "-", "==", "!=", ">", "<", ">=", "<=", ")", ",", ";", "and", "or", $ }
 

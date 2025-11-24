@@ -4,7 +4,7 @@
 AutomatoPalavrasReservadas::AutomatoPalavrasReservadas() : Automato({}, {}) {
     palavras = {
         "interface","struct","implements","def","this","for","foreach","in",
-        "if","elif","else","while","break","continue","return",
+        "if","else","while","break","continue","return",
         "int","float","string","bool","tuple","dict","set","void","null"
     };
 }

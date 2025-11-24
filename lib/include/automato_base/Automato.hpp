@@ -1,4 +1,4 @@
-#pragma once 
+#pragma once
 #include <iostream>
 #include <unordered_map>
 #include <string>
@@ -25,7 +25,6 @@ enum class TokenType {
     KW_FOREACH,
     KW_IN,
     KW_IF,
-    KW_ELIF,
     KW_ELSE,
     KW_WHILE,
     KW_BREAK,
@@ -35,6 +34,8 @@ enum class TokenType {
     KW_FLOAT,
     KW_STRING,
     KW_BOOL,
+    KW_TRUE,
+    KW_FALSE,
     KW_TUPLE,
     KW_DICT,
     KW_SET,
@@ -50,7 +51,7 @@ enum class TokenType {
     ASSIGN_AND,     // &=
     ASSIGN_OR,      // |=
     ASSIGN_XOR,     // ^=
-    ASSIGN_NOT,     // ~= 
+    ASSIGN_NOT,     // ~=
     ASSIGN_SHR,     // >>=
     ASSIGN_SHL,     // <<=
     ASSIGN_MOD,     // %=
@@ -113,7 +114,6 @@ inline std::string tokenTypeToString(TokenType tipo) {
         case TokenType::KW_FOREACH: return "KW_FOREACH";
         case TokenType::KW_IN: return "KW_IN";
         case TokenType::KW_IF: return "KW_IF";
-        case TokenType::KW_ELIF: return "KW_ELIF";
         case TokenType::KW_ELSE: return "KW_ELSE";
         case TokenType::KW_WHILE: return "KW_WHILE";
         case TokenType::KW_BREAK: return "KW_BREAK";
@@ -123,6 +123,8 @@ inline std::string tokenTypeToString(TokenType tipo) {
         case TokenType::KW_FLOAT: return "KW_FLOAT";
         case TokenType::KW_STRING: return "KW_STRING";
         case TokenType::KW_BOOL: return "KW_BOOL";
+        case TokenType::KW_TRUE: return "KW_TRUE";
+        case TokenType::KW_FALSE: return "KW_FALSE";
         case TokenType::KW_TUPLE: return "KW_TUPLE";
         case TokenType::KW_DICT: return "KW_DICT";
         case TokenType::KW_SET: return "KW_SET";
@@ -191,7 +193,6 @@ inline TokenType stringToTokenType(const std::string& palavra) {
     if (palavra == "foreach") return TokenType::KW_FOREACH;
     if (palavra == "in") return TokenType::KW_IN;
     if (palavra == "if") return TokenType::KW_IF;
-    if (palavra == "elif") return TokenType::KW_ELIF;
     if (palavra == "else") return TokenType::KW_ELSE;
     if (palavra == "while") return TokenType::KW_WHILE;
     if (palavra == "break") return TokenType::KW_BREAK;
@@ -201,13 +202,15 @@ inline TokenType stringToTokenType(const std::string& palavra) {
     if (palavra == "float") return TokenType::KW_FLOAT;
     if (palavra == "string") return TokenType::KW_STRING;
     if (palavra == "bool") return TokenType::KW_BOOL;
+    if (palavra == "true") return TokenType::KW_TRUE;
+    if (palavra == "false") return TokenType::KW_FALSE;
     if (palavra == "tuple") return TokenType::KW_TUPLE;
     if (palavra == "dict") return TokenType::KW_DICT;
     if (palavra == "set") return TokenType::KW_SET;
     if (palavra == "void") return TokenType::KW_VOID;
     if (palavra == "null") return TokenType::KW_NULL;
 
-    return TokenType::UNKNOWN; 
+    return TokenType::UNKNOWN;
 }
 
 

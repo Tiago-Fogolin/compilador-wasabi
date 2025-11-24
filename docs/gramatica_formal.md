@@ -10,7 +10,7 @@ V = `{Programa, BlocoDeclarações, Declaração, DeclaraçãoStruct, Declaraç�
 
 
 Σ = `{"interface", "struct", "implements", "def", "this", "for", "foreach", "in",
-     "if", "elif", "else", "while", "break", "continue", "return",
+     "if", "else", "while", "break", "continue", "return",
      "int", "float", "string", "bool", "tuple", "dict", "set", "void", "null",
      "(", ")", "{", "}", "[", "]", ",", ";", "=", "+", "-", "*", "/",
      "==", "!=", ">", "<", ">=", "<=", "identificador",
@@ -60,7 +60,7 @@ ComandoRetorno      = "return" [ Expressão ]
 
 ComandoCondicional  = "if" "(" Expressão ")" BlocoComandos [ ComandoElse ]
 ComandoElse         = "else" BlocoComandos
-                    | "elif" "(" Expressão ")" BlocoComandos [ ComandoElse ]
+
 
 ComandoLaço         = "for" "(" ComandoAtribuição "," Expressão "," ComandoAtribuição ")" BlocoComandos
                     | "foreach" identificador "in" Expressão BlocoComandos

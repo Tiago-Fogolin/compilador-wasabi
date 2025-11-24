@@ -254,3 +254,19 @@ void ExpressaoRelacional::imprimir(int indent) const {
         std::cout << IND(indent + 4) << "NULL\n";
     }
 }
+
+ExpressaoAcessoArray::ExpressaoAcessoArray(
+    std::shared_ptr<NodoExpressao> arrayBase,
+    std::shared_ptr<NodoExpressao> indice)
+    : arrayBase(std::move(arrayBase)), indice(std::move(indice)) {}
+
+void ExpressaoAcessoArray::imprimir(int indent) const {
+    std::string indentStr(indent * 4, ' ');
+    std::cout << indentStr << "AcessoArray\n";
+
+    std::cout << indentStr << "    ArrayBase:\n";
+    arrayBase->imprimir(indent + 1);
+
+    std::cout << indentStr << "    Indice:\n";
+    indice->imprimir(indent + 1);
+}

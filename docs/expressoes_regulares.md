@@ -117,7 +117,7 @@
 * **Palavras-chave adicionais:**
 
 ```
-\b(interface|struct|implements|def|this|for|foreach|in|if|elif|else|while|break|continue|return|int|float|string|bool|tuple|dict|set|void|null)\b
+\b(interface|struct|implements|def|this|for|foreach|in|if|else|while|break|continue|return|int|float|string|bool|tuple|dict|set|void|null)\b
 ```
 
 ## 2. Análise de Ambiguidades e Regras de Resolução

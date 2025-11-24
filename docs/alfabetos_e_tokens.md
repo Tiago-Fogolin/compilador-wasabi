@@ -56,7 +56,7 @@ Ex: `"Olá, mundo"`, `"vendas_2025.csv"`
 
 Reservadas da linguagem:
 
-`import, from, clear, filter, statistics, if, elif, else, while, for, return, interface , struct , implements, this, def, foreach , in , int, string, float, bool, tuple, dict, set, void. null, break, continue, try, catch, finally, throw.`  
+`import, from, clear, filter, statistics, if, else, while, for, return, interface , struct , implements, this, def, foreach , in , int, string, float, bool, tuple, dict, set, void. null, break, continue, try, catch, finally, throw.`  
 ---
 
 ### **e) Operadores e Delimitadores**
@@ -74,7 +74,7 @@ Reservadas da linguagem:
 ## 2.1 indentificadores  
   ID → `[a-zA-Z_]\[a-zA-Z0-9_]*`  
 ## 2.2 Palavras-chave (reservadas)  
-	KEYWORD → `interface | struct | implements | this | def | if | else | elif | for | foreach | in | int | string | float | bool | tuple | dict | set | void | null | return | while | break | continue | import | from | try | catch | finally | throw`
+	KEYWORD → `interface | struct | implements | this | def | if | else | for | foreach | in | int | string | float | bool | tuple | dict | set | void | null | return | while | break | continue | import | from | try | catch | finally | throw`
 ## 2.3 Operadores  
 	OP → \+ | - | \* | / | % | = | == | != | < | > | <= | >= | && | \|\| | !
 ## 2.4 Delimitadores  

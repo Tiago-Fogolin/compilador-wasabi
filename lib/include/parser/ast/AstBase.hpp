@@ -1,4 +1,5 @@
 #pragma once
+#include "automato_base/Automato.hpp"
 #include <string>
 #include <vector>
 #include <memory>
@@ -241,5 +242,17 @@ class ExpressaoArrayLiteral : public NodoExpressao {
 public:
     std::vector<std::shared_ptr<NodoExpressao>> elementos;
     ExpressaoArrayLiteral(std::vector<std::shared_ptr<NodoExpressao>> elementos);
+    void imprimir(int indent = 0) const override;
+};
+
+class ExpressaoAcessoArray : public NodoExpressao {
+public:
+    std::shared_ptr<NodoExpressao> arrayBase;
+    std::shared_ptr<NodoExpressao> indice;
+
+    ExpressaoAcessoArray(
+        std::shared_ptr<NodoExpressao> arrayBase,
+        std::shared_ptr<NodoExpressao> indice
+    );
     void imprimir(int indent = 0) const override;
 };

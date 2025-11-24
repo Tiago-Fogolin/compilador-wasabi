@@ -18,7 +18,6 @@ void testarPalavrasReservadas() {
         {"foreach", true},
         {"in", true},
         {"if", true},
-        {"elif", true},
         {"else", true},
         {"while", true},
         {"break", true},

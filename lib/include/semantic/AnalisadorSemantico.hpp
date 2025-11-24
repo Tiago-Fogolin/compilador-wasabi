@@ -15,6 +15,8 @@ struct ErroSemantico {
 };
 
 class AnalisadorSemantico {
+private:
+    std::string tipoRetornoAtual;
 public:
     AnalisadorSemantico();
 
@@ -78,11 +80,16 @@ private:
 
     std::vector<std::tuple<std::string, std::string, bool>> extrairAtributosStruct(const std::shared_ptr<DeclaracaoStruct>& ds) const;
 
+    std::string inferirTipoArrayLiteral(const std::shared_ptr<ExpressaoArrayLiteral>& arr);
+    void analisarComandoForEach(const std::shared_ptr<ComandoLaco>& lc);
+    void analisarComandoForWhile(const std::shared_ptr<ComandoLaco>& lc);
+    std::string extrairTipoRetornoDaAssinatura(const std::string& assinatura);
     // Erros
     void reportarErro(const std::string& msg, int linha);
 
 public:
     const std::vector<ErroSemantico>& obterErros() const { return erros; }
+    TabelaSimbolos* obterTabelaSimbolos() { return &tabela; }
 };
 
 #endif
