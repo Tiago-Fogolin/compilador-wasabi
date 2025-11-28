@@ -17,6 +17,7 @@ struct ErroSemantico {
 class AnalisadorSemantico {
 private:
     std::string tipoRetornoAtual;
+    std::string structAtual = "";
 public:
     AnalisadorSemantico();
 
@@ -61,6 +62,7 @@ private:
 
     std::string inferirTipoConstrutorStruct(const std::shared_ptr<ExpressaoChamada>& ch,
                                             const SimboloStruct& infoStruct);
+    std::string inferirTipoAcessoMembro(const std::shared_ptr<ExpressaoAcessoMembro>& expr);
 
     // ======== TIPOS AUXILIARES ========
     bool tiposCompativeis(const std::string& a, const std::string& b) const;
@@ -84,6 +86,8 @@ private:
     void analisarComandoForEach(const std::shared_ptr<ComandoLaco>& lc);
     void analisarComandoForWhile(const std::shared_ptr<ComandoLaco>& lc);
     std::string extrairTipoRetornoDaAssinatura(const std::string& assinatura);
+
+    void analisarComandoAtribuicaoArray(const std::shared_ptr<ComandoAtribuicaoArray>& at);
     // Erros
     void reportarErro(const std::string& msg, int linha);
 

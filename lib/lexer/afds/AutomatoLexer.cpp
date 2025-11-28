@@ -10,8 +10,8 @@ AutomatoLexer::AutomatoLexer() : Automato({}, {}) {
     // ----------------------------
     // 1. ROOT (ESTADO INICIAL: ÍNDICE 0)
     // ----------------------------
-    std::unordered_map<char,int> q0; 
-    int idxRoot = addNode(nodes, {}); 
+    std::unordered_map<char,int> q0;
+    int idxRoot = addNode(nodes, {});
 
     // ----------------------------
     // 2. WHITESPACE
@@ -21,7 +21,7 @@ AutomatoLexer::AutomatoLexer() : Automato({}, {}) {
 
     WS_q1[' '] = idxWS_q1; WS_q1['\t'] = idxWS_q1;
     WS_q1['\r'] = idxWS_q1; WS_q1['\n'] = idxWS_q1;
-    nodes[idxWS_q1].mapaDestino = WS_q1; 
+    nodes[idxWS_q1].mapaDestino = WS_q1;
 
     q0[' '] = idxWS_q1; q0['\t'] = idxWS_q1;
     q0['\r'] = idxWS_q1; q0['\n'] = idxWS_q1;
@@ -33,7 +33,7 @@ AutomatoLexer::AutomatoLexer() : Automato({}, {}) {
     // 3. COMMENTS (CORRIGIDO)
     // ----------------------------
     int idxCOM_q1 = addNode(nodes, {});
-    
+
     // --- SINGLE LINE COMMENT (//...) ---
     int idxCOM_LINE_q2 = addNode(nodes, {});
     nodes[idxCOM_q1].mapaDestino['/'] = idxCOM_LINE_q2;
@@ -42,7 +42,7 @@ AutomatoLexer::AutomatoLexer() : Automato({}, {}) {
 
     mapRange(nodes[idxCOM_LINE_q2].mapaDestino, '\0', '\t', idxCOM_LINE_q2);
     mapRange(nodes[idxCOM_LINE_q2].mapaDestino, '\v', '~', idxCOM_LINE_q2);
-    
+
     // --- BLOCK COMMENT (/* ... */) ---
     int idxCOM_BLOCK_q3 = addNode(nodes, {});
     int idxCOM_END_STAR = addNode(nodes, {});
@@ -53,15 +53,15 @@ AutomatoLexer::AutomatoLexer() : Automato({}, {}) {
     estadosFinais.insert(idxCOM_BLOCK_FINAL);
     estadoFinaisTipos[idxCOM_BLOCK_FINAL] = TokenType::COMMENT;
 
-    mapRange(nodes[idxCOM_BLOCK_q3].mapaDestino, '\0', ')', idxCOM_BLOCK_q3); 
+    mapRange(nodes[idxCOM_BLOCK_q3].mapaDestino, '\0', ')', idxCOM_BLOCK_q3);
     mapRange(nodes[idxCOM_BLOCK_q3].mapaDestino, '+', '~', idxCOM_BLOCK_q3);
     nodes[idxCOM_BLOCK_q3].mapaDestino['*'] = idxCOM_END_STAR;
 
     std::unordered_map<char,int> COM_END_STAR;
-    COM_END_STAR['/'] = idxCOM_BLOCK_FINAL; 
+    COM_END_STAR['/'] = idxCOM_BLOCK_FINAL;
     COM_END_STAR['*'] = idxCOM_END_STAR;
 
-    mapRange(COM_END_STAR, '\0', ')', idxCOM_BLOCK_q3); 
+    mapRange(COM_END_STAR, '\0', ')', idxCOM_BLOCK_q3);
     mapRange(COM_END_STAR, '+', '.', idxCOM_BLOCK_q3);
     mapRange(COM_END_STAR, '0', '~', idxCOM_BLOCK_q3);
     nodes[idxCOM_END_STAR].mapaDestino = COM_END_STAR;
@@ -72,12 +72,12 @@ AutomatoLexer::AutomatoLexer() : Automato({}, {}) {
     // ----------------------------
     // 4. OPERATORS E ATRIBUIÇÕES COMPOSTAS (CORRIGIDO)
     // ----------------------------
-    
+
     // Estados Finais de Operadores Relacionais e Lógicos Compostos
-    int idxOP_EQ_EQ   = addNode(nodes, {}); int idxOP_LE      = addNode(nodes, {}); 
-    int idxOP_GE      = addNode(nodes, {}); int idxOP_NE      = addNode(nodes, {}); 
-    int idxOP_AND_AND = addNode(nodes, {}); int idxOP_OR_OR   = addNode(nodes, {}); 
-    int idxOP_SHIFT_L = addNode(nodes, {}); int idxOP_SHIFT_R = addNode(nodes, {}); 
+    int idxOP_EQ_EQ   = addNode(nodes, {}); int idxOP_LE      = addNode(nodes, {});
+    int idxOP_GE      = addNode(nodes, {}); int idxOP_NE      = addNode(nodes, {});
+    int idxOP_AND_AND = addNode(nodes, {}); int idxOP_OR_OR   = addNode(nodes, {});
+    int idxOP_SHIFT_L = addNode(nodes, {}); int idxOP_SHIFT_R = addNode(nodes, {});
 
     // Estados Finais de Atribuições Compostas (NOVOS)
     int idxOP_ASSIGN_ADD = addNode(nodes, {}); // +=
@@ -108,25 +108,25 @@ AutomatoLexer::AutomatoLexer() : Automato({}, {}) {
     std::unordered_map<char,int> OP_q11 = {{'=', idxOP_ASSIGN_XOR}}; // ^
     std::unordered_map<char,int> OP_q12 = {}; // ~ (Não tem atribuição composta)
 
-    int idxOP_q0 = addNode(nodes, OP_q0); int idxOP_q1 = addNode(nodes, OP_q1); 
-    int idxOP_q2 = addNode(nodes, OP_q2); int idxOP_q3 = addNode(nodes, OP_q3); 
-    int idxOP_q4 = addNode(nodes, OP_q4); int idxOP_q5 = addNode(nodes, OP_q5); 
-    int idxOP_q6 = addNode(nodes, OP_q6); 
+    int idxOP_q0 = addNode(nodes, OP_q0); int idxOP_q1 = addNode(nodes, OP_q1);
+    int idxOP_q2 = addNode(nodes, OP_q2); int idxOP_q3 = addNode(nodes, OP_q3);
+    int idxOP_q4 = addNode(nodes, OP_q4); int idxOP_q5 = addNode(nodes, OP_q5);
+    int idxOP_q6 = addNode(nodes, OP_q6);
     int idxOP_q8 = addNode(nodes, OP_q8); int idxOP_q9 = addNode(nodes, OP_q9);
-    int idxOP_q10 = addNode(nodes, OP_q10); int idxOP_q11 = addNode(nodes, OP_q11); 
-    int idxOP_q12 = addNode(nodes, OP_q12); 
+    int idxOP_q10 = addNode(nodes, OP_q10); int idxOP_q11 = addNode(nodes, OP_q11);
+    int idxOP_q12 = addNode(nodes, OP_q12);
 
     // Transições dos operadores de shift (adicionado transição de atribuição)
     nodes[idxOP_SHIFT_L].mapaDestino['='] = idxOP_ASSIGN_SHL;
     nodes[idxOP_SHIFT_R].mapaDestino['='] = idxOP_ASSIGN_SHR;
 
     // Transição de Atribuição para '/' (idxOP_q7/idxCOM_q1)
-    nodes[idxOP_q7].mapaDestino['='] = idxOP_ASSIGN_DIV; 
-    
+    nodes[idxOP_q7].mapaDestino['='] = idxOP_ASSIGN_DIV;
+
     // Mapeamento do Root (q0)
     q0['='] = idxOP_q0; q0['<'] = idxOP_q1; q0['>'] = idxOP_q2; q0['!'] = idxOP_q3;
     q0['+'] = idxOP_q4; q0['-'] = idxOP_q5; q0['*'] = idxOP_q6; // q0['/'] = idxCOM_q1 (já definido)
-    q0['%'] = idxOP_q8; q0['&'] = idxOP_q9; q0['|'] = idxOP_q10; q0['^'] = idxOP_q11; 
+    q0['%'] = idxOP_q8; q0['&'] = idxOP_q9; q0['|'] = idxOP_q10; q0['^'] = idxOP_q11;
     q0['~'] = idxOP_q12;
 
     // --- Tipos de Tokens (Operadores Simples) ---
@@ -153,7 +153,7 @@ AutomatoLexer::AutomatoLexer() : Automato({}, {}) {
     estadosFinais.insert(idxOP_OR_OR); estadoFinaisTipos[idxOP_OR_OR] = TokenType::OR;
     estadosFinais.insert(idxOP_SHIFT_L); estadoFinaisTipos[idxOP_SHIFT_L] = TokenType::LSHIFT;
     estadosFinais.insert(idxOP_SHIFT_R); estadoFinaisTipos[idxOP_SHIFT_R] = TokenType::RSHIFT;
-    
+
     // NOVOS TIPOS DE ATRIBUIÇÃO COMPOSTA:
     estadosFinais.insert(idxOP_ASSIGN_ADD); estadoFinaisTipos[idxOP_ASSIGN_ADD] = TokenType::ASSIGN_ADD;
     estadosFinais.insert(idxOP_ASSIGN_SUB); estadoFinaisTipos[idxOP_ASSIGN_SUB] = TokenType::ASSIGN_SUB;
@@ -171,7 +171,7 @@ AutomatoLexer::AutomatoLexer() : Automato({}, {}) {
     // 5. IDENTIFIER / KEYWORD
     // ----------------------------
     std::unordered_map<char,int> ID_q0;
-    int idxID_q0 = addNode(nodes, ID_q0); 
+    int idxID_q0 = addNode(nodes, ID_q0);
 
     mapRange(nodes[idxID_q0].mapaDestino,'a','z', idxID_q0);
     mapRange(nodes[idxID_q0].mapaDestino,'A','Z', idxID_q0);
@@ -193,10 +193,11 @@ AutomatoLexer::AutomatoLexer() : Automato({}, {}) {
     int idxSTR_ESCAPE = addNode(nodes, {});
 
     std::unordered_map<char,int> STR_CONTENT;
-    STR_CONTENT['"'] = idxSTR_FINAL; 
+    STR_CONTENT['"'] = idxSTR_FINAL;
     STR_CONTENT['\\'] = idxSTR_ESCAPE;
-    mapRange(STR_CONTENT, '#', '[', idxSTR_CONTENT);  
-    mapRange(STR_CONTENT, ']', '~', idxSTR_CONTENT);  
+    mapRange(STR_CONTENT, ' ', '!', idxSTR_CONTENT);
+    mapRange(STR_CONTENT, '#', '[', idxSTR_CONTENT);
+    mapRange(STR_CONTENT, ']', '~', idxSTR_CONTENT);
 
     std::unordered_map<char,int> STR_ESCAPE;
     mapRange(STR_ESCAPE, ' ', '~', idxSTR_CONTENT);
@@ -205,8 +206,8 @@ AutomatoLexer::AutomatoLexer() : Automato({}, {}) {
     nodes[idxSTR_CONTENT].mapaDestino['\\'] = idxSTR_ESCAPE;
 
     std::unordered_map<char,int> STR_START;
-    STR_START['"'] = idxSTR_FINAL;      
-    STR_START['\\'] = idxSTR_ESCAPE;   
+    STR_START['"'] = idxSTR_FINAL;
+    STR_START['\\'] = idxSTR_ESCAPE;
     mapRange(STR_START, ' ', '!', idxSTR_CONTENT);
     mapRange(STR_START, '#', '[', idxSTR_CONTENT);
     mapRange(STR_START, ']', '~', idxSTR_CONTENT);
@@ -228,8 +229,8 @@ AutomatoLexer::AutomatoLexer() : Automato({}, {}) {
     nodes[idxCHAR_CONTENT].mapaDestino = CHAR_CONTENT;
 
     std::unordered_map<char,int> CHAR_START;
-    CHAR_START['\\'] = idxCHAR_ESCAPE; 
-    mapRange(CHAR_START, ' ', '&', idxCHAR_CONTENT); 
+    CHAR_START['\\'] = idxCHAR_ESCAPE;
+    mapRange(CHAR_START, ' ', '&', idxCHAR_CONTENT);
     mapRange(CHAR_START, '(', '[', idxCHAR_CONTENT);
     mapRange(CHAR_START, ']', '~', idxCHAR_CONTENT);
     int idxCHAR_START = addNode(nodes, CHAR_START);
@@ -241,32 +242,32 @@ AutomatoLexer::AutomatoLexer() : Automato({}, {}) {
     // ----------------------------
     // 8. NUMBERS
     // ----------------------------
-    int idxNUM_INT_FINAL = addNode(nodes, {});   
+    int idxNUM_INT_FINAL = addNode(nodes, {});
     int idxNUM_FLOAT_FINAL = addNode(nodes, {});
-    int idxNUM_SCI_FINAL = addNode(nodes, {}); 
-    int idxNUM_POINT = addNode(nodes, {});    
+    int idxNUM_SCI_FINAL = addNode(nodes, {});
+    int idxNUM_POINT = addNode(nodes, {});
     int idxNUM_SCI = addNode(nodes, {});
-    int idxNUM_SIGN = addNode(nodes, {});     
+    int idxNUM_SIGN = addNode(nodes, {});
 
     q0['0'] = idxNUM_INT_FINAL;
     mapRange(q0,'1','9', idxNUM_INT_FINAL);
 
     mapRange(nodes[idxNUM_INT_FINAL].mapaDestino, '0', '9', idxNUM_INT_FINAL);
-    nodes[idxNUM_INT_FINAL].mapaDestino['.'] = idxNUM_POINT;                   
-    nodes[idxNUM_INT_FINAL].mapaDestino['e'] = idxNUM_SCI;                     
+    nodes[idxNUM_INT_FINAL].mapaDestino['.'] = idxNUM_POINT;
+    nodes[idxNUM_INT_FINAL].mapaDestino['e'] = idxNUM_SCI;
     nodes[idxNUM_INT_FINAL].mapaDestino['E'] = idxNUM_SCI;
 
     mapRange(nodes[idxNUM_POINT].mapaDestino, '0', '9', idxNUM_FLOAT_FINAL);
-    nodes[idxNUM_FLOAT_FINAL].mapaDestino['0'] = idxNUM_FLOAT_FINAL;         
+    nodes[idxNUM_FLOAT_FINAL].mapaDestino['0'] = idxNUM_FLOAT_FINAL;
     mapRange(nodes[idxNUM_FLOAT_FINAL].mapaDestino, '1', '9', idxNUM_FLOAT_FINAL);
     nodes[idxNUM_FLOAT_FINAL].mapaDestino['e'] = idxNUM_SCI;
     nodes[idxNUM_FLOAT_FINAL].mapaDestino['E'] = idxNUM_SCI;
 
-    mapRange(nodes[idxNUM_SCI].mapaDestino, '0', '9', idxNUM_SCI_FINAL);     
-    nodes[idxNUM_SCI].mapaDestino['+'] = idxNUM_SIGN;                        
+    mapRange(nodes[idxNUM_SCI].mapaDestino, '0', '9', idxNUM_SCI_FINAL);
+    nodes[idxNUM_SCI].mapaDestino['+'] = idxNUM_SIGN;
     nodes[idxNUM_SCI].mapaDestino['-'] = idxNUM_SIGN;
 
-    mapRange(nodes[idxNUM_SIGN].mapaDestino, '0', '9', idxNUM_SCI_FINAL);    
+    mapRange(nodes[idxNUM_SIGN].mapaDestino, '0', '9', idxNUM_SCI_FINAL);
     mapRange(nodes[idxNUM_SCI_FINAL].mapaDestino, '0', '9', idxNUM_SCI_FINAL);
 
     estadosFinais.insert(idxNUM_INT_FINAL); estadoFinaisTipos[idxNUM_INT_FINAL] = TokenType::INTEGER;
@@ -297,7 +298,7 @@ AutomatoLexer::AutomatoLexer() : Automato({}, {}) {
     }
 
     // Adiciona ponto se não estiver
-    if(q0.find('.') == q0.end()){ 
+    if(q0.find('.') == q0.end()){
         int idxDOT = addNode(nodes, {});
         q0['.'] = idxDOT;
         estadosFinais.insert(idxDOT);

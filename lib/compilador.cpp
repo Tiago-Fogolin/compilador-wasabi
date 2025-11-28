@@ -54,6 +54,7 @@ int main(int argc, char* argv[]) {
                 std::cout << "\nAnalise semantica concluida sem erros.\n";
 
                 TabelaSimbolos* tss = semantico.obterTabelaSimbolos();
+                tss->setEmitirAvisos(false);
                 GeradorIR gerador(tss);
 
                 std::string codigoIR = gerador.gerar(programa);

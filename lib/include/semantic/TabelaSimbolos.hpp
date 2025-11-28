@@ -8,11 +8,12 @@
 
 class TabelaSimbolos {
 private:
-    std::vector<std::unordered_map<std::string, Simbolo>> escopos;
+    bool deveEmitirAvisos;
+    std::vector<std::map<std::string, std::shared_ptr<Simbolo>>> escopos;
     std::unordered_map<std::string, SimboloStruct> structs;
 
 public:
-    TabelaSimbolos();
+    TabelaSimbolos(bool avisar = true);
 
     int nivelEscopo() const;
 
@@ -22,7 +23,8 @@ public:
     bool declarar(const std::string& nome,
                   const std::string& tipo,
                   int linha,
-                  bool inicializado = false);
+                  bool inicializado = false,
+                  int tam = -1);
 
     void registrarStruct(const SimboloStruct& s);
 
@@ -36,6 +38,8 @@ public:
 
     bool foiDeclarado(const std::string& nome) const;
     std::string obterTipo(const std::string& nome) const;
+
+    void setEmitirAvisos(bool estado);
 
     void imprimir() const;
 };

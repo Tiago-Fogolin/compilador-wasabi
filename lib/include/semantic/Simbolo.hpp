@@ -2,6 +2,7 @@
 #define SIMBOLO_HPP
 
 #include <string>
+#include <map>
 #include <parser/ast/AstBase.hpp>
 
 class Simbolo {
@@ -11,12 +12,14 @@ public:
     int linha;
     bool inicializado;
     bool utilizado;
+    int tamanhoConhecido = -1;
 
     Simbolo(const std::string& nome,
             const std::string& tipo,
             int linha,
             bool inicializado = false,
-            bool utilizado = false);
+            bool utilizado = false,
+            int tam = -1);
 
     std::string toString() const;
 };

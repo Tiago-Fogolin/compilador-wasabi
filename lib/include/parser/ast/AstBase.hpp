@@ -20,7 +20,10 @@ public:
 };
 
 
-class NodoExpressao : public NodoAST {};
+class NodoExpressao : public NodoAST {
+    public:
+        std::string tipoInferido;
+};
 
 class ExpressaoLiteral : public NodoExpressao {
 public:
@@ -255,4 +258,21 @@ public:
         std::shared_ptr<NodoExpressao> indice
     );
     void imprimir(int indent = 0) const override;
+};
+
+class ComandoAtribuicaoArray : public NodoComando {
+public:
+    std::string nome;
+    std::shared_ptr<NodoExpressao> indice;
+    std::string operador;
+    std::shared_ptr<NodoExpressao> expressao;
+
+    ComandoAtribuicaoArray(std::string nome,
+                           std::shared_ptr<NodoExpressao> indice,
+                           std::string operador,
+                           std::shared_ptr<NodoExpressao> expressao)
+        : nome(nome), indice(indice), operador(operador), expressao(expressao) {}
+
+    void imprimir(int indent = 0) const override {
+    }
 };

@@ -176,13 +176,15 @@ ComandoIdent::ComandoIdent(std::string n, std::vector<std::shared_ptr<NodoExpres
 ComandoIdent::ComandoIdent(std::string n, std::string op, std::shared_ptr<NodoExpressao> expr)
     : nome(std::move(n)), operadorAtribuicao(std::move(op)), expressao(std::move(expr)) {}
 void ComandoIdent::imprimir(int indent) const {
-    // Nota: O ComandoIdent tem dois propósitos (chamada ou atribuição que não é VarDecl).
-    if (argumentos.empty()) { // Atribuição
+    if (expressao) { 
         std::cout << IND(indent) << "AtribIdent(" << nome << " " << operadorAtribuicao << ")\n";
-        expressao->imprimir(indent+2);
-    } else { // Chamada
+        expressao->imprimir(indent + 2);
+    } 
+    else {
         std::cout << IND(indent) << "ChamadaCmd(" << nome << ")\n";
-        for (auto& arg : argumentos) arg->imprimir(indent + 2);
+        for (auto& arg : argumentos) {
+            arg->imprimir(indent + 2);
+        }
     }
 }
 

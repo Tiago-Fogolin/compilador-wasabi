@@ -1,8 +1,12 @@
 #include <semantic/TabelaSimbolos.hpp>
 #include <iostream>
 
-TabelaSimbolos::TabelaSimbolos() {
+TabelaSimbolos::TabelaSimbolos(bool avisar) : deveEmitirAvisos(avisar) {
     entrarEscopo();
+}
+
+void TabelaSimbolos::setEmitirAvisos(bool estado) {
+    deveEmitirAvisos = estado;
 }
 
 int TabelaSimbolos::nivelEscopo() const {
@@ -19,13 +23,17 @@ void TabelaSimbolos::sairEscopo() {
     }
 
     auto& escopoAtual = escopos.back();
-    for (const auto& [nome, simbolo] : escopoAtual) {
-        if (!simbolo.utilizado) {
-            std::cout << "Aviso: Variavel " << nome
-                      << " declarada na linha " << simbolo.linha
-                      << " nunca foi utilizada\n";
+
+    if (deveEmitirAvisos) {
+        for (const auto& [nome, simboloPtr] : escopoAtual) {
+            if (!simboloPtr->utilizado) {
+                std::cout << "Aviso: Variavel " << nome
+                          << " declarada na linha " << simboloPtr->linha
+                          << " nunca foi utilizada\n";
+            }
         }
     }
+
 
     escopos.pop_back();
 }
@@ -33,14 +41,15 @@ void TabelaSimbolos::sairEscopo() {
 bool TabelaSimbolos::declarar(const std::string& nome,
                               const std::string& tipo,
                               int linha,
-                              bool inicializado)
+                              bool inicializado,
+                              int tamanhoConhecido)
 {
     auto& atual = escopos.back();
 
     if (atual.count(nome) > 0)
         return false;
 
-    atual.emplace(nome, Simbolo(nome, tipo, linha, inicializado));
+    atual.emplace(nome, std::make_shared<Simbolo>(nome, tipo, linha, inicializado, tamanhoConhecido));
     return true;
 }
 
@@ -59,17 +68,13 @@ Simbolo* TabelaSimbolos::buscar(const std::string& nome) {
         auto& mapa = escopos[i];
         auto it = mapa.find(nome);
         if (it != mapa.end()) {
-            return &it->second;
+            return it->second.get();
         }
     }
     return nullptr;
 }
 
-Simbolo* TabelaSimbolos::buscarEscopoAtual(const std::string& nome) {
-    auto& mapa = escopos.back();
-    auto it = mapa.find(nome);
-    return (it != mapa.end() ? &it->second : nullptr);
-}
+
 
 void TabelaSimbolos::marcarUtilizado(const std::string& nome) {
     if (auto* s = buscar(nome)) {
@@ -95,19 +100,8 @@ std::string TabelaSimbolos::obterTipo(const std::string& nome) const {
     for (int i = escopos.size() - 1; i >= 0; --i) {
         auto it = escopos[i].find(nome);
         if (it != escopos[i].end()) {
-            return it->second.tipo;
+            return it->second.get()->tipo;
         }
     }
     return "";
-}
-
-void TabelaSimbolos::imprimir() const {
-    std::cout << "\n=== Tabela de Simbolos ===\n";
-    for (size_t i = 0; i < escopos.size(); i++) {
-        std::cout << "Escopo nivel " << i << ":\n";
-        for (const auto& [nome, simbolo] : escopos[i]) {
-            std::cout << "  " << simbolo.toString() << "\n";
-        }
-    }
-    std::cout << "========================\n\n";
 }

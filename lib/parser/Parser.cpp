@@ -87,12 +87,18 @@ std::shared_ptr<NodoPrograma> Parser::analisarPrograma() {
 
     while (!fimDaEntrada() && !verificar(TokenType::END_OF_FILE)) {
         auto decl = analisarBlocoDeclaracoes();
-        auto cmd = analisarComando(false);
         if (!decl.empty()) {
             for(auto d: decl) {
                 declaracoes.push_back(d);
             }
         }
+
+        if (fimDaEntrada() || verificar(TokenType::END_OF_FILE)) {
+            break;
+        }
+
+        auto cmd = analisarComando(false);
+
         if (cmd) comandos.push_back(cmd);
     }
 
@@ -158,8 +164,21 @@ std::shared_ptr<NodoComando> Parser::analisarComando(bool dentro_bloco) {
         return cmd_decl;
     }
 
-    if (verificar(TokenType::IDENTIFIER)) {
-        Token id = consumir(TokenType::IDENTIFIER);
+    if (verificar(TokenType::IDENTIFIER) || verificar(TokenType::KW_THIS)) {
+        Token id;
+        if(peek().tipo == TokenType::KW_THIS) {
+            id = consumir(TokenType::KW_THIS);
+        }
+        else {
+            id = consumir(TokenType::IDENTIFIER);
+        }
+        std::string nomeCompleto = id.valor;
+
+        while (verificar(TokenType::DOT)) {
+            consumir(TokenType::DOT);
+            Token membro = consumir(TokenType::IDENTIFIER);
+            nomeCompleto += "." + membro.valor;
+        }
 
         if (verificar(TokenType::PAREN_OPEN)) {
             consumir(TokenType::PAREN_OPEN);
@@ -173,13 +192,30 @@ std::shared_ptr<NodoComando> Parser::analisarComando(bool dentro_bloco) {
             }
             consumir(TokenType::PAREN_CLOSE);
 
-            std::shared_ptr<ComandoIdent> cmd = std::make_shared<ComandoIdent>(id.valor, args);
+            std::shared_ptr<ComandoIdent> cmd = std::make_shared<ComandoIdent>(nomeCompleto, args);
+
             cmd->posicao.linha = id.linha;
 
             return cmd;
         }
+        else if (verificar(TokenType::BRACKET_OPEN)) {
+            consumir(TokenType::BRACKET_OPEN);
+            auto indice = analisarExpressao();
+            consumir(TokenType::BRACKET_CLOSE);
+
+            if (ehOperadorAtribuicao(peek().tipo)) {
+                Token op = advance();
+                auto valor = analisarExpressao();
+
+                auto cmd = std::make_shared<ComandoAtribuicaoArray>(nomeCompleto, indice, op.valor, valor);
+                cmd->posicao.linha = id.linha;
+                return cmd;
+            }
+        }
         else if (posicao_atual < tokens.size() && ehOperadorAtribuicao(peek().tipo)) {
-            return analisarComandoAtribuicao(id);
+            Token tokenAtualizado = id;
+            tokenAtualizado.valor = nomeCompleto;
+            return analisarComandoAtribuicao(tokenAtualizado);
         }
     }
     std::cerr << "[Linha: " << peek().linha << "] "<< "Token inesperado: "  << peek().valor << std::endl;
@@ -392,9 +428,14 @@ std::shared_ptr<DeclaracaoVariavel> Parser::analisarDeclaracaoVariavel() {
     tipo = tipoToken.valor;
     if (verificar(TokenType::BRACKET_OPEN)) {
         consumir(TokenType::BRACKET_OPEN);
-        consumir(TokenType::BRACKET_CLOSE);
-
-        *tipo += "[]";
+        if (verificar(TokenType::INTEGER)) {
+            Token tam = consumir(TokenType::INTEGER);
+            consumir(TokenType::BRACKET_CLOSE);
+            *tipo += "[" + tam.valor + "]";
+        } else {
+            consumir(TokenType::BRACKET_CLOSE);
+            *tipo += "[]";
+        }
     }
 
     if (verificar(TokenType::ASSIGN)) {
@@ -493,6 +534,12 @@ std::shared_ptr<DeclaracaoFuncao> Parser::analisarDeclaracaoFuncao() {
             Token tipoToken = consumir(peek().tipo);
             paramTipo = tipoToken.valor;
 
+            if (verificar(TokenType::BRACKET_OPEN)) {
+                consumir(TokenType::BRACKET_OPEN);
+                consumir(TokenType::BRACKET_CLOSE);
+                paramTipo += "[]";
+            }
+
             parametros.emplace_back(paramNome.valor, paramTipo);
 
             if (verificar(TokenType::COMMA)) {
@@ -506,9 +553,22 @@ std::shared_ptr<DeclaracaoFuncao> Parser::analisarDeclaracaoFuncao() {
     consumir(TokenType::PAREN_CLOSE);
 
     std::string tipoRetorno = "";
-    consumir(TokenType::COLON);
-    Token tipoToken = consumir(peek().tipo);
-    tipoRetorno = tipoToken.valor;
+
+    if (verificar(TokenType::COLON)) {
+        consumir(TokenType::COLON);
+
+        Token tipoToken = consumir(peek().tipo);
+        tipoRetorno = tipoToken.valor;
+
+        if (verificar(TokenType::BRACKET_OPEN)) {
+            consumir(TokenType::BRACKET_OPEN);
+            consumir(TokenType::BRACKET_CLOSE);
+            tipoRetorno += "[]";
+        }
+    }
+    else {
+        tipoRetorno = "void";
+    }
 
     consumir(TokenType::BRACE_OPEN);
     std::vector<std::shared_ptr<NodoAST>> corpo = analisarBlocoComandos(true);
@@ -529,7 +589,7 @@ int Parser::obterPrecedencia(TokenType tipo) {
         case TokenType::GT: case TokenType::LT: case TokenType::GTE:
         case TokenType::LTE: case TokenType::EQ: case TokenType::NEQ: return 1;
         case TokenType::PLUS: case TokenType::MINUS: return 2;
-        case TokenType::STAR: case TokenType::SLASH: return 3;
+        case TokenType::STAR: case TokenType::SLASH: case TokenType::MOD: return 3;
         default: return 0;
     }
 }
@@ -568,27 +628,32 @@ std::shared_ptr<NodoExpressao> Parser::analisarExpressaoBinaria(int prec_min) {
 
 std::shared_ptr<NodoExpressao> Parser::analisarFator() {
     std::shared_ptr<NodoExpressao> expr;
-    Token id_token;
 
+    // 1. Identificando o início do fator
     if (verificar(TokenType::INTEGER) || verificar(TokenType::FLOAT) ||
         verificar(TokenType::STRING_LITERAL) || verificar(TokenType::CHAR_LITERAL) ||
-        verificar(TokenType::KW_TRUE) || verificar(TokenType::KW_FALSE)) {
+        verificar(TokenType::KW_TRUE) || verificar(TokenType::KW_FALSE) ||
+        verificar(TokenType::KW_NULL)) { // Adicionei NULL caso falte
         Token literal = advance();
         expr = std::make_shared<ExpressaoLiteral>(literal.valor, tokenTypeToDataType(literal.tipo));
         expr->posicao.linha = literal.linha;
-    } else if (verificar(TokenType::KW_THIS)) {
+    }
+    else if (verificar(TokenType::KW_THIS)) {
         Token kw = advance();
         expr = std::make_shared<ExpressaoIdentificador>(kw.valor);
         expr->posicao.linha = kw.linha;
-    } else if (verificar(TokenType::IDENTIFIER)) {
-        id_token = advance();
+    }
+    else if (verificar(TokenType::IDENTIFIER)) {
+        Token id_token = advance();
         expr = std::make_shared<ExpressaoIdentificador>(id_token.valor);
         expr->posicao.linha = id_token.linha;
-    } else if (verificar(TokenType::PAREN_OPEN)) {
+    }
+    else if (verificar(TokenType::PAREN_OPEN)) {
         advance();
         expr = analisarExpressao();
         consumir(TokenType::PAREN_CLOSE);
-    } else if (verificar(TokenType::BRACKET_OPEN)) {
+    }
+    else if (verificar(TokenType::BRACKET_OPEN)) {
         Token brck_open = consumir(TokenType::BRACKET_OPEN);
         std::vector<std::shared_ptr<NodoExpressao>> elementos;
         if (!verificar(TokenType::BRACKET_CLOSE)) {
@@ -601,31 +666,34 @@ std::shared_ptr<NodoExpressao> Parser::analisarFator() {
         consumir(TokenType::BRACKET_CLOSE);
         expr = std::make_shared<ExpressaoArrayLiteral>(elementos);
         expr->posicao.linha = brck_open.linha;
-    } else if (verificar(TokenType::MINUS)) { // Operador unário (negativo)
+    }
+    else if (verificar(TokenType::MINUS)) {
         Token op = advance();
         auto fator = analisarFator();
         expr = std::make_shared<ExpressaoUnaria>(op.valor, fator);
         expr->posicao.linha = op.linha;
-    } else {
+    }
+    else {
         std::cerr << "[Linha: " << peek().linha << "]" << "Erro de sintaxe: fator inesperado em " << (int)peek().tipo << std::endl;
         advance();
         return nullptr;
     }
 
     while (verificar(TokenType::DOT) || verificar(TokenType::PAREN_OPEN) || verificar(TokenType::BRACKET_OPEN)) {
+
         if (verificar(TokenType::DOT)) {
             consumir(TokenType::DOT);
             Token membro = consumir(TokenType::IDENTIFIER);
             expr = std::make_shared<ExpressaoAcessoMembro>(expr, membro.valor);
             expr->posicao.linha = membro.linha;
+        }
+        else if (verificar(TokenType::PAREN_OPEN)) {
 
-        } else if (verificar(TokenType::PAREN_OPEN)) {
             if (!std::dynamic_pointer_cast<ExpressaoIdentificador>(expr) &&
                 !std::dynamic_pointer_cast<ExpressaoAcessoMembro>(expr)) {
                 break;
             }
 
-            // É uma chamada de função/método
             consumir(TokenType::PAREN_OPEN);
             std::vector<std::shared_ptr<NodoExpressao>> args;
             if (!verificar(TokenType::PAREN_CLOSE)) {
@@ -635,31 +703,43 @@ std::shared_ptr<NodoExpressao> Parser::analisarFator() {
                     args.push_back(analisarExpressao());
                 }
             }
-            consumir(TokenType::PAREN_CLOSE);
+            Token parenClose = consumir(TokenType::PAREN_CLOSE);
 
             std::string nome_chamada;
+
             if (auto id_expr = std::dynamic_pointer_cast<ExpressaoIdentificador>(expr)) {
                 nome_chamada = id_expr->nome;
-            } else if (auto membro_expr = std::dynamic_pointer_cast<ExpressaoAcessoMembro>(expr)) {
-                nome_chamada = id_token.valor;
-            } else {
-                 nome_chamada = "Erro_Chamada_Expressao_Complexa";
+            }
+            else if (auto membro_expr = std::dynamic_pointer_cast<ExpressaoAcessoMembro>(expr)) {
+
+                std::string nomeObjeto = "unknown";
+                if (auto objId = std::dynamic_pointer_cast<ExpressaoIdentificador>(membro_expr->objeto)) {
+                    nomeObjeto = objId->nome;
+                }
+
+                nome_chamada = nomeObjeto + "." + membro_expr->membro;
+            }
+            else {
+                 nome_chamada = "Erro_Recursao_Complexa";
             }
 
-            expr = std::make_shared<ExpressaoChamada>(nome_chamada, args);
-            expr->posicao.linha = id_token.linha;
 
-        } else if(verificar(TokenType::BRACKET_OPEN)) {
+            expr = std::make_shared<ExpressaoChamada>(nome_chamada, args);
+            expr->posicao.linha = parenClose.linha;
+
+        }
+        // Acesso a Array (arr[0])
+        else if(verificar(TokenType::BRACKET_OPEN)) {
             consumir(TokenType::BRACKET_OPEN);
             std::shared_ptr<NodoExpressao> indice = analisarExpressao();
             consumir(TokenType::BRACKET_CLOSE);
             expr = std::make_shared<ExpressaoAcessoArray>(expr, indice);
             expr->posicao.linha = indice->posicao.linha;
-        } else {
+        }
+        else {
             break;
         }
     }
-
 
     return expr;
 }
