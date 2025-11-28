@@ -1,0 +1,7 @@
+nome: string = "Wasabi"
+versao: float = 1.0
+
+print("Bem-vindo ao " + nome + " v" + str(versao))
+
+inicial: char = nome[0]
+print("A primeira letra eh: " + inicial)

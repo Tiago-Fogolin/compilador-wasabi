@@ -1,12 +1,13 @@
 # **Definição Formal da Gramática**
 G = `(V, Σ, P, S)`
 
-V = `{Programa, BlocoDeclarações, Declaração, DeclaraçãoStruct, DeclaraçãoInterface,
-     DeclaraçãoMétodo, DeclaraçãoAtributo, DeclaraçãoFunção, DeclaraçãoVariável,
-     BlocoComandos, Comando, ComandoCondicional, ComandoLaço, ComandoAtribuição,
-     ComandoChamada, ComandoRetorno, ComandoElse, Expressão, ExpressãoAritmética,
-     ExpressãoRelacional, ExpressãoLógica, Termo, Fator, ListaParametros,
-     ListaArgumentos, Tipo, Atributo, ListaAtributos, ListaMétodos}`
+V = `{"interface", "struct", "implements", "def", "this", "for", "foreach", "in",
+     "if", "else", "while", "return", "int", "float", "string", "bool", "void", "null", "char",
+     "(", ")", "{", "}", "[", "]", ",", ";", ":", ".",
+     "=", "+=", "-=", "*=", "/=",
+     "==", "!=", ">", "<", ">=", "<=", "+", "-", "*", "/", "%",
+     "&&", "||", "!",
+     "identificador", "literal_inteiro", "literal_real", "literal_texto", "literal_char", "true", "false"}`
 
 
 Σ = `{"interface", "struct", "implements", "def", "this", "for", "foreach", "in",
@@ -23,80 +24,84 @@ P = O conjunto de produções segue abaixo, no formato EBNF.
 
 ## Gramática em EBNF (Extended Backus–Naur Form)
 ```enbf
-Programa            = BlocoDeclarações BlocoComandos
+(* --- Estrutura Geral --- *)
+Programa            = { ElementoPrograma } ;
+ElementoPrograma    = Declaração | Comando ;
 
-BlocoDeclarações    = { Declaração }
 
 Declaração          = DeclaraçãoStruct
                     | DeclaraçãoInterface
                     | DeclaraçãoFunção
-                    | DeclaraçãoVariável
+                    | DeclaraçãoVariável ;
 
-DeclaraçãoStruct    = "struct" identificador [ "implements" identificador ] "{" ListaAtributos ListaMétodos "}"
+DeclaraçãoVariável  = identificador ":" Tipo [ "=" Expressão ] ;
 
-ListaAtributos      = { Atributo }
-Atributo            = identificador [ ":" Tipo ]
 
-ListaMétodos        = { DeclaraçãoMétodo }
-DeclaraçãoMétodo    = DeclaraçãoFunção
+DeclaraçãoFunção    = "def" identificador "(" [ ListaParametros ] ")" [ ":" Tipo ] Bloco ;
 
-DeclaraçãoInterface = "interface" identificador "{" [ ListaMétodos ] "}"
+ListaParametros     = Parametro { "," Parametro } ;
+Parametro           = identificador ":" Tipo ;
 
-DeclaraçãoFunção    = "def" identificador "(" [ ListaParametros ] ")" ":" BlocoComandos
+Tipo                = TipoBase { "[" [ literal_inteiro ] "]" } ;
+TipoBase            = "int" | "float" | "string" | "bool" | "void" | "char" | identificador ;
 
-DeclaraçãoVariável  = identificador [ ":" Tipo ] "=" Expressão
+DeclaraçãoStruct    = "struct" identificador [ "implements" ListaIdentificadores ] "{" { MembroStruct } "}" ;
+ListaIdentificadores= identificador { "," identificador } ;
 
-Tipo                = "int" | "float" | "string" | "bool"
-                    | "tuple" | "dict" | "set" | "void" | "null"
+MembroStruct        = DeclaraçãoFunção  (* Método *)
+                    | DeclaraçãoVariável (* Atributo *) ;
 
-BlocoComandos       = { Comando }
+DeclaraçãoInterface = "interface" identificador "{" { DeclaraçãoFunção } "}" ;
+
+
+Bloco               = "{" ListaComandos "}" ;
+ListaComandos       = { Comando } ;
 
 Comando             = ComandoCondicional
                     | ComandoLaço
                     | ComandoRetorno
-                    | ComandoIdent
+                    | ComandoExpressão
+                    | ComandoDeclaração ; (* Variável local *)
 
-ComandoRetorno      = "return" [ Expressão ]
+ComandoDeclaração   = DeclaraçãoVariável ; (* Parser trata decl como comando dentro de blocos *)
 
-ComandoCondicional  = "if" "(" Expressão ")" BlocoComandos [ ComandoElse ]
-ComandoElse         = "else" BlocoComandos
+ComandoCondicional  = "if" "(" Expressão ")" Bloco [ ComandoElse ] ;
+ComandoElse         = "else" ( Bloco | ComandoCondicional ) ;
 
+ComandoLaço         = "while" "(" Expressão ")" Bloco
+                    | "for" "(" [ ComandoExpressão ] "," Expressão "," [ ComandoExpressão ] ")" Bloco
+                    | "foreach" "(" identificador "in" Expressão ")" Bloco ;
 
-ComandoLaço         = "for" "(" ComandoAtribuição "," Expressão "," ComandoAtribuição ")" BlocoComandos
-                    | "foreach" identificador "in" Expressão BlocoComandos
-                    | "while" "(" Expressão ")" BlocoComandos
+ComandoRetorno      = "return" [ Expressão ] ;
 
+ComandoExpressão    = LValue ( OperadorAtribuição Expressão | "(" [ ListaArgumentos ] ")" ) ;
 
-ComandoIdent        = identificador Suffix
-Suffix              = "(" [ ListaArgumentos ] ")"
-                    | AssignOp Expressão                 
-                      Expressão
+LValue              = identificador { AcessoMembro | AcessoIndice } ;
+AcessoMembro        = "." identificador ;
+AcessoIndice        = "[" Expressão "]" ;
 
-ComandoAtribuição   = identificador AssignOp Expressão
+OperadorAtribuição  = "=" | "+=" | "-=" | "*=" | "/=" ;
 
-AssignOp            = "=" | "+=" | "-=" | "*=" | "**=" | "/=" | "//=" | "&=" | "|=" | "^=" | "~=" | ">>=" | "<<="
+Expressão           = ExpressãoLógica ;
 
-ListaParametros     = Tipo identificador { "," Tipo identificador } | ε
+ExpressãoLógica     = ExpressãoRelacional { ("&&" | "||") ExpressãoRelacional } ;
 
-ListaArgumentos     = Expressão { "," Expressão } | ε
+ExpressãoRelacional = ExpressãoAritmética [ ("==" | "!=" | ">" | "<" | ">=" | "<=") ExpressãoAritmética ] ;
 
+ExpressãoAritmética = ExpressãoMultiplicativa { ("+" | "-") ExpressãoMultiplicativa } ;
 
-Expressão           = LogicalOr
+ExpressãoMultiplicativa = ExpressãoUnaria { ("*" | "/" | "%") ExpressãoUnaria } ;
 
-LogicalOr           = LogicalAnd { "or" LogicalAnd }
+ExpressãoUnaria     = [ "-" | "!" ] ExpressãoPrimaria ;
 
-LogicalAnd          = LogicalNot { "and" LogicalNot }
+ExpressãoPrimaria   = literal_inteiro
+                    | literal_real
+                    | literal_texto
+                    | literal_char
+                    | "true" | "false" | "null"
+                    | "this"
+                    | "(" Expressão ")"
+                    | "[" [ ListaArgumentos ] "]"  (* Array Literal: [1, 2] *)
+                    | LValue [ "(" [ ListaArgumentos ] ")" ] ; (* Variável, Campo ou Chamada *)
 
-LogicalNot          = "not" LogicalNot
-                    | RelationalOrPrimary
-
-RelationalOrPrimary = Arithmetic [ RelOp Arithmetic ]
-RelOp               = "==" | "!=" | ">" | "<" | ">=" | "<="
-
-Arithmetic          = Term { ("+" | "-") Term }
-
-Term                = Factor { ("*" | "/") Factor }
-
-Factor              = "(" Expressão ")"
-                    | identificador
-                    | literal
+ListaArgumentos     = Expressão { "," Expressão } ;

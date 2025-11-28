@@ -1,0 +1,35 @@
+struct Item {
+    valor: int
+}
+
+def ordenar(lista: Item[]) {
+    n: int = lista.length
+    i: int = 0
+
+    while (i < n - 1) {
+        j: int = 0
+        while (j < n - i - 1) {
+            // Acesso e troca (Swap)
+            a: Item = lista[j]
+            b: Item = lista[j+1]
+
+            if (a.valor > b.valor) {
+                lista[j] = b
+                lista[j+1] = a
+            }
+            j += 1
+        }
+        i += 1
+    }
+}
+item1: Item = Item(100)
+item2: Item = Item(5)
+item3: Item = Item(50)
+items: Item[] = [item1, item2, item3]
+
+print("Ordenando...")
+ordenar(items)
+
+foreach(it in items) {
+    print(it.valor)
+}

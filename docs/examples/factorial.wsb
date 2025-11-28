@@ -1,0 +1,11 @@
+def fatorial(n: int) : int {
+    if (n <= 1) {
+        return 1
+    }
+    return n * fatorial(n - 1)
+}
+
+numero: int = 5
+resultado: int = fatorial(numero)
+
+print("O fatorial de " + str(numero) + " eh " + str(resultado))

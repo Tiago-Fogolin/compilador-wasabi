@@ -1,0 +1,21 @@
+struct Retangulo {
+    largura: int
+    altura: int
+
+    def area() : int {
+        return this.largura * this.altura
+    }
+
+    def eh_quadrado() : bool {
+        return this.largura == this.altura
+    }
+}
+
+ret: Retangulo = Retangulo(10, 20)
+quad: Retangulo = Retangulo(5, 5)
+
+print("Area do Retangulo: " + str(ret.area()))
+
+if (quad.eh_quadrado()) {
+    print("O segundo objeto eh um quadrado perfeito!")
+}

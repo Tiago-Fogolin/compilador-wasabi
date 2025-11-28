@@ -1,0 +1,16 @@
+notas: int[3]
+notas[0] = 8
+notas[1] = 7
+notas[2] = 9
+
+soma: int = 0
+
+print("Calculando media...")
+
+
+foreach(nota in notas) {
+    print("Nota: " + str(nota))
+    soma += nota
+}
+
+print("Media final: " + str(soma / notas.length))

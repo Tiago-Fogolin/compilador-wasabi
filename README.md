@@ -1,67 +1,102 @@
-# Compilador - README
+# Wasabi Compiler
 
-## Compilação
+Este é o compilador da linguagem **Wasabi**, construído utilizando C++ e
+a infraestrutura LLVM.
 
-Para compilar o compilador, você precisa estar **na pasta raiz do projeto** e ter o `make` e o `g++` instalados.
+## 🚀 Instalação e Uso Rápido
 
-### No Windows
+Se você apenas quer usar o compilador sem precisar baixar o código
+fonte, siga os passos abaixo.
 
-```bash
-mingw32-make -f .\MakeFile.mk
+### 1. Pré-requisitos (Obrigatório)
+
+Mesmo baixando o executável pronto, o compilador **depende do Clang**
+instalado na sua máquina para gerar os binários finais.
+
+-   **Windows:**
+    -   Baixe e instale o **LLVM** (que inclui o Clang): *LLVM Download
+        Page* ou via `winget install LLVM`.
+    -   **Importante:** Durante a instalação, marque a opção **"Add LLVM
+        to the system PATH"**.
+-   **Linux:**
+    -   Instale via terminal: `sudo apt install clang`
+
+### 2. Download do Binário
+
+Baixe a versão mais recente do compilador já compilado:
+
+👉 **CLIQUE AQUI PARA BAIXAR O COMPILADOR (LINK_DO_BINARIO)**
+
+### 3. Como Executar
+
+Após baixar e garantir que o `clang` está instalado, abra o terminal na
+pasta onde está o `compilador.exe`:
+
+``` bash
+# Compilação básica
+./compilador.exe arquivo_teste.wsb
+
+# Compilação definindo nome de saída
+./compilador.exe arquivo_teste.wsb -o meu_programa.exe
 ```
 
-### No Linux
+## 🛠️ Compilação
 
-```bash
-make -f ./MakeFile.mk
-```
+Se você baixou o código fonte e deseja compilar o projeto manualmente,
+siga estas instruções.
 
-Isso irá gerar o executável `compilador.exe` dentro da pasta `build`.
+### Dependências de Desenvolvimento
 
----
+Além do Clang/LLVM (citado acima), você precisará de uma ferramenta de
+automação Make:
 
-## Execução
+-   **Windows:** É recomendado usar o MinGW ou MSYS2 para obter o
+    mingw32-make.
+-   **Linux:** Instale o pacote make (`sudo apt install make`).
 
-Para rodar o compilador, use o seguinte comando:
+### Compilando o Projeto
 
-```bash
-./build/compilador.exe <caminho_do_arquivo>
-```
+Certifique-se de estar na raiz do projeto.
 
-Substitua `<caminho_do_arquivo>` pelo caminho do arquivo que você deseja compilar.
+#### No Windows (PowerShell)
 
----
+    mingw32-make -f .\MakeFile.mk
 
-## Testes
+#### No Linux (Bash)
 
-Para compilar e rodar os testes:
+    make -f ./MakeFile.mk
 
-### Compilação dos testes
+Isso irá gerar o executável `compilador.exe` (ou `compilador`) dentro da
+pasta *build*.
 
-#### No Windows
+> **Nota:** O sistema de build atual pode apresentar problemas se o
+> caminho da pasta do projeto contiver espaços em branco. Recomenda-se
+> colocar o projeto em um caminho sem espaços (ex:
+> `C:\Projetos\Wasabi`).
 
-```bash
-mingw32-make -f .\MakeFile_tests.mk
-```
+## 🧪 Executando Testes
 
-#### No Linux
+O projeto possui um conjunto de testes automatizados para validar a
+linguagem.
 
-```bash
-make -f ./MakeFile_tests.mk
-```
+### 1. Compilar os Testes
 
-Isso irá gerar o executável `testes.exe` dentro da pasta `build`.
+**Windows (PowerShell):**
 
-### Execução dos testes
+    mingw32-make -f .\MakeFile_tests.mk
 
-```bash
-./build/testes.exe
-```
+**Linux (Bash):**
 
----
+    make -f ./MakeFile_tests.mk
 
-## Observações
+### 2. Rodar os Testes
 
-* Todos os executáveis são gerados na pasta `build`.
-* Pode ser que de pau no make se o caminho da sua pasta tiver espaços, então coloque em um caminho sem espaços se der erro, até o burrinho aqui conseguir arrumar isso
-* Tem dois makefile separado pq não conseguimos gerar os dois executavéis no mesmo makefile 👍
+    ./build/testes.exe
+
+## 📚 Exemplos
+
+Aprenda a sintaxe da linguagem Wasabi e veja códigos de exemplo
+(fatoriais, structs, loops, etc.) no repositório oficial:
+
+
+[**Ver Exemplos**](./docs/examples)
