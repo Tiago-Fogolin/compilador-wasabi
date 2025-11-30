@@ -111,7 +111,8 @@ std::vector<Token> Lexer::analisarTexto(std::string& bloco) {
         }
 
         if (ultimoEstadoFinal == -1) {
-            std::cerr << "Erro léxico na linha " << linha
+            err = true;
+            std::cerr << "Erro lexico na linha " << linha
                       << ": caractere inesperado '" << texto[i] << "'\n";
             i++;
             continue;

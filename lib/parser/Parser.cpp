@@ -219,6 +219,7 @@ std::shared_ptr<NodoComando> Parser::analisarComando(bool dentro_bloco) {
         }
     }
     std::cerr << "[Linha: " << peek().linha << "] "<< "Token inesperado: "  << peek().valor << std::endl;
+    err = true;
     advance();
     return nullptr;
 }
@@ -497,6 +498,7 @@ std::shared_ptr<NodoDeclaracao> Parser::analisarDeclaracao() {
                 atributos.push_back(analisarDeclaracaoVariavel());
             } else {
                 std::cerr << "[Linha: " << peek().linha << "] " << "Erro: conteúdo de struct inesperado." << std::endl;
+                err = true;
                 advance();
             }
         }
@@ -513,6 +515,7 @@ std::shared_ptr<NodoDeclaracao> Parser::analisarDeclaracao() {
 
     Token tokenInesperado = peek();
     std::cerr << "[Linha: " << peek().linha << "] " << "Erro: tipo de declaração inesperado: " << tokenTypeToString(tokenInesperado.tipo) << std::endl;
+    err = true;
     advance();
     return nullptr;
 }

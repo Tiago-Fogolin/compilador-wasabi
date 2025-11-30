@@ -12,6 +12,7 @@ private:
 
 public:
     Lexer();
+    bool err = false;
 
     std::vector<Token> analisarTexto(std::string& texto);
 };

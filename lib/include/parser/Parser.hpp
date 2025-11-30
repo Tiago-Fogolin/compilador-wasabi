@@ -12,7 +12,7 @@ private:
 
 public:
     Parser(std::vector<Token> tokens);
-
+    bool err = false;
     // Auxiliares de navegação (SEM ALTERAÇÃO)
     Token peek();
     Token advance();

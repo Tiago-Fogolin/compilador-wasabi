@@ -25,7 +25,7 @@ instalado na sua máquina para gerar os binários finais.
 
 Baixe a versão mais recente do compilador já compilado:
 
-👉 **CLIQUE AQUI PARA BAIXAR O COMPILADOR (LINK_DO_BINARIO)**
+[**CLIQUE AQUI PARA BAIXAR O COMPILADOR (LINK DO BINARIO)**](https://github.com/Tiago-Fogolin/compilador-wasabi/releases/download/v1/compilador.exe)
 
 ### 3. Como Executar
 
@@ -47,12 +47,17 @@ siga estas instruções.
 
 ### Dependências de Desenvolvimento
 
-Além do Clang/LLVM (citado acima), você precisará de uma ferramenta de
-automação Make:
+Além do **Clang/LLVM** (necessário para o funcionamento do Wasabi), para compilar o projeto você precisará de:
 
--   **Windows:** É recomendado usar o MinGW ou MSYS2 para obter o
-    mingw32-make.
--   **Linux:** Instale o pacote make (`sudo apt install make`).
+1.  **Compilador C++:** (Recomenda-se o `g++` via GCC ou o próprio `clang++`).
+2.  **Make:** Ferramenta de automação de build.
+
+**Como instalar:**
+
+-   **Windows:** Recomenda-se instalar o **MinGW-w64**.
+    -   Ao instalar, certifique-se de marcar os pacotes `mingw32-make`, `gcc` e `g++`.
+-   **Linux:** Instale o pacote essencial de build (inclui Make e G++):
+    -   `sudo apt install build-essential`
 
 ### Compilando o Projeto
 
@@ -73,25 +78,6 @@ pasta *build*.
 > caminho da pasta do projeto contiver espaços em branco. Recomenda-se
 > colocar o projeto em um caminho sem espaços (ex:
 > `C:\Projetos\Wasabi`).
-
-## 🧪 Executando Testes
-
-O projeto possui um conjunto de testes automatizados para validar a
-linguagem.
-
-### 1. Compilar os Testes
-
-**Windows (PowerShell):**
-
-    mingw32-make -f .\MakeFile_tests.mk
-
-**Linux (Bash):**
-
-    make -f ./MakeFile_tests.mk
-
-### 2. Rodar os Testes
-
-    ./build/testes.exe
 
 ## 📚 Exemplos
 

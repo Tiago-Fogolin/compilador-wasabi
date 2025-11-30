@@ -9,7 +9,6 @@ def ordenar(lista: Item[]) {
     while (i < n - 1) {
         j: int = 0
         while (j < n - i - 1) {
-            // Acesso e troca (Swap)
             a: Item = lista[j]
             b: Item = lista[j+1]
 

@@ -130,10 +130,12 @@ int main(int argc, char* argv[]) {
 
         Lexer lexer;
         auto tokens = lexer.analisarTexto(codigoFonte);
+        if (lexer.err) throw std::runtime_error("Erro Lexico.");
+
 
         Parser parser(tokens);
         auto programa = parser.analisarPrograma();
-        if (!programa) throw std::runtime_error("Erro de Sintaxe.");
+        if (parser.err || !programa) throw std::runtime_error("Erro de Sintaxe.");
 
         std::cout << "[2/5] Analise Semantica...\n";
         AnalisadorSemantico semantico;
