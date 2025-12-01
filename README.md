@@ -1,88 +1,102 @@
 # Wasabi Compiler
 
-Este é o compilador da linguagem **Wasabi**, construído utilizando C++ e
-a infraestrutura LLVM.
+Este é o compilador da linguagem **Wasabi**, construído utilizando C++ e a infraestrutura LLVM.
 
 ## 🚀 Instalação e Uso Rápido
 
-Se você apenas quer usar o compilador sem precisar baixar o código
-fonte, siga os passos abaixo.
+Se você apenas quer usar o compilador sem precisar baixar o código fonte, siga os passos abaixo.
 
-### 1. Pré-requisitos (Obrigatório)
+### 1. Pré-requisitos (Windows)
 
-Mesmo baixando o executável pronto, o compilador **depende do Clang**
-instalado na sua máquina para gerar os binários finais.
+Para que tudo funcione corretamente no Windows, você precisa do **Clang** e das **Ferramentas de Build do C++** (para que o Clang consiga criar executáveis).
 
--   **Windows:**
-    -   Baixe e instale o **LLVM** (que inclui o Clang): *LLVM Download
-        Page* ou via `winget install LLVM`.
-    -   **Importante:** Durante a instalação, marque a opção **"Add LLVM
-        to the system PATH"**.
--   **Linux:**
-    -   Instale via terminal: `sudo apt install clang`
+A maneira mais fácil de instalar tudo é abrir o **PowerShell (como Administrador)** e rodar:
+
+```powershell
+# 1. Instala o LLVM, e o adicone para o path
+winget install LLVM.LLVM
+
+# 2. WinLibs
+winget install BrechtSanders.WinLibs.POSIX.UCRT
+
+# 3. Instala as ferramentas de build do Visual Studio (Necessário para o Linker do Windows)
+winget install Microsoft.VisualStudio.2022.BuildTools --override "--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended --passive --norestart"
+```
+
+**Nota:** Se o comando acima das BuildTools falhar ou pedir seleção manual, abra o instalador e marque a opção *"Desenvolvimento para desktop com C++"*.
+
+---
 
 ### 2. Download do Binário
 
 Baixe a versão mais recente do compilador já compilado:
 
-[**CLIQUE AQUI PARA BAIXAR O COMPILADOR (LINK DO BINARIO)**](https://github.com/Tiago-Fogolin/compilador-wasabi/releases/download/v1/compilador.exe)
+[**CLIQUE AQUI PARA BAIXAR O COMPILADOR**](https://github.com/Tiago-Fogolin/compilador-wasabi/releases/download/v1/compilador.exe)
+
+---
 
 ### 3. Como Executar
 
-Após baixar e garantir que o `clang` está instalado, abra o terminal na
-pasta onde está o `compilador.exe`:
+Abra o terminal (CMD ou PowerShell) na pasta onde está o `compilador.exe`:
 
-``` bash
-# Compilação básica
-./compilador.exe arquivo_teste.wsb
+**No Windows (CMD ou PowerShell):**
 
-# Compilação definindo nome de saída
-./compilador.exe arquivo_teste.wsb -o meu_programa.exe
+```powershell
+.\compilador.exe arquivo_teste.wsb
 ```
 
-## 🛠️ Compilação
+**Opções:**
 
-Se você baixou o código fonte e deseja compilar o projeto manualmente,
-siga estas instruções.
+```powershell
+# Definir nome de saída personalizado
+.\compilador.exe arquivo_teste.wsb -o meu_executavel.exe
+```
 
-### Dependências de Desenvolvimento
+---
 
-Além do **Clang/LLVM** (necessário para o funcionamento do Wasabi), para compilar o projeto você precisará de:
+## 🛠️ Compilação (Para Desenvolvedores)
 
-1.  **Compilador C++:** (Recomenda-se o `g++` via GCC ou o próprio `clang++`).
-2.  **Make:** Ferramenta de automação de build.
+Se você baixou o código fonte e deseja compilar o projeto manualmente (`.cpp` -> `.exe`), você precisará do Make e do G++.
 
-**Como instalar:**
+### Instalar Dependências de Build
 
--   **Windows:** Recomenda-se instalar o **MinGW-w64**.
-    -   Ao instalar, certifique-se de marcar os pacotes `mingw32-make`, `gcc` e `g++`.
--   **Linux:** Instale o pacote essencial de build (inclui Make e G++):
-    -   `sudo apt install build-essential`
+No Windows, recomendamos usar o pacote **WinLibs** via `winget`, que já traz o MinGW (GCC, G++, Make) configurado:
+
+```powershell
+winget install BrechtSanders.WinLibs.POSIX.UCRT
+```
+
+(Após instalar, pode ser necessário reiniciar o terminal para reconhecer os comandos `make` ou `mingw32-make`).
+
+---
 
 ### Compilando o Projeto
 
-Certifique-se de estar na raiz do projeto.
+Certifique-se de estar na **raiz do projeto**.
 
-#### No Windows (PowerShell)
+#### No Windows
 
-    mingw32-make -f .\MakeFile.mk
+```powershell
+mingw32-make -f .\MakeFile.mk
+```
 
-#### No Linux (Bash)
+(Se o comando `mingw32-make` não for encontrado, tente apenas `make` ou verifique se a pasta *bin* do WinLibs está no seu PATH).
 
-    make -f ./MakeFile.mk
+#### No Linux
 
-Isso irá gerar o executável `compilador.exe` (ou `compilador`) dentro da
-pasta *build*.
+```bash
+# Instalar dependências: sudo apt install build-essential clang
+make -f ./MakeFile.mk
+```
 
-> **Nota:** O sistema de build atual pode apresentar problemas se o
-> caminho da pasta do projeto contiver espaços em branco. Recomenda-se
-> colocar o projeto em um caminho sem espaços (ex:
-> `C:\Projetos\Wasabi`).
+Isso irá gerar o executável `compilador.exe` dentro da pasta **build**.
+
+⚠️ *Atenção:* O sistema de build atual pode apresentar problemas se o caminho da pasta do projeto contiver espaços em branco. Recomenda-se colocar o projeto em um caminho simples (ex: `C:\Projetos\Wasabi`).
+
+---
 
 ## 📚 Exemplos
 
-Aprenda a sintaxe da linguagem Wasabi e veja códigos de exemplo
-(fatoriais, structs, loops, etc.) no repositório oficial:
-
+Aprenda a sintaxe da linguagem Wasabi e veja códigos de exemplo (fatoriais, structs, loops, etc.) no link abaixo:
 
 [**Ver Exemplos**](./docs/examples)
